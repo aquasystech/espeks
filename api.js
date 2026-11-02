@@ -1,5 +1,5 @@
 // api.js - Jambatan API GitHub Pages ke Google Apps Script eSPeKS
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoJu-AZc9JfuVVmHFvHPttwFwEA1aX8KfV1KBPQ-timl_ePHtMfnfT6xKeISdst9F5/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsa_ccL8AYUbg0GqIbsNqmFOYdJY-BFngNN0Fdma7aVk9y8RhjeS4zRWEqP-Z4r2N2/exec";
 
 function callAppsScript(actionName, params, successCallback, failureCallback) {
   fetch(SCRIPT_URL, {
