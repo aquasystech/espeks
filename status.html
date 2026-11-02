@@ -191,6 +191,7 @@
         <div class="no-print" style="text-align:center; margin-top:15px; padding-bottom:30px;">
             <button onclick="window.print()" style="background-color:#28a745; color:white; padding:12px 30px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">🖨️ Cetak</button>
             <button onclick="window.location.reload()" style="background-color:#6c757d; color:white; padding:12px 30px; border:none; border-radius:5px; cursor:pointer; margin-left:10px;">Semak Semula</button>
+            <a href="index.html" style="background-color:#153f6a; color:white; padding:12px 30px; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold; margin-left:10px;">🏠 Laman Utama</a>
         </div>
     </div>
 </div>
@@ -198,6 +199,30 @@
 <script>
     document.getElementById('printDate').innerText = new Date().toLocaleString('en-MY');
 
+    // Carian automatik jika pautan dibuka bersama parameter URL (cth: status.html?id=SPEKS-2026-0001)
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramId = urlParams.get('id') || '';
+        const paramIc = urlParams.get('ic') || urlParams.get('nokp') || '';
+
+        if (paramId || paramIc) {
+            if (paramId) document.getElementById('inputId').value = paramId;
+            if (paramIc) document.getElementById('inputIC').value = paramIc;
+            
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('searchSection').style.display = 'none';
+
+            google.script.run
+                .withSuccessHandler(paparkanKeputusan)
+                .withFailureHandler(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('searchSection').style.display = 'block';
+                    Swal.fire('Ralat', err.message, 'error');
+                })
+                .semakStatusPermohonan(paramId, paramIc);
+        }
+    });
+  
     document.getElementById('searchForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const id = document.getElementById('inputId').value.trim();
@@ -238,9 +263,19 @@
         }
 
         const status = data['Status Semasa'] || 'Baru';
+        const stUpper = String(status).toUpperCase().trim();
         const banner = document.getElementById('statusBanner');
-        banner.innerText = "STATUS: " + status.toUpperCase();
-        banner.className = 'status-banner ' + (status === 'Diluluskan' ? 'status-lulus' : status === 'Ditolak' ? 'status-tolak' : status.includes('Disokong') ? 'status-proses' : 'status-baru');
+        banner.innerText = "STATUS: " + stUpper;
+
+        let badgeClass = 'status-baru';
+        if (stUpper.includes('LULUS') || stUpper.includes('SELESAI')) {
+            badgeClass = 'status-lulus';
+        } else if (stUpper.includes('TOLAK') || stUpper.includes('TIADA KELULUSAN') || stUpper.includes('BATAL')) {
+            badgeClass = 'status-tolak';
+        } else if (stUpper.includes('SOKONG') || stUpper.includes('SAH') || stUpper.includes('MENUNGGU') || stUpper.includes('PRA')) {
+            badgeClass = 'status-proses';
+        }
+        banner.className = 'status-banner ' + badgeClass;
 
         const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || '-'; };
         setVal('kategoriProjek', data['Kategori Projek']);
@@ -282,24 +317,48 @@
             return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-MY');
         };
         
-        // HQ -> DILULUSKAN
-        document.getElementById('dispHqStatus').innerText = (data['Nilai Diluluskan (HQ)'] && data['Nilai Diluluskan (HQ)'] != 0) ? "DILULUSKAN" : "TIDAK DILULUSKAN / PROSES";
-        document.getElementById('dispHqCatatan').innerText = data['Catatan HQ'] || "-";
-        document.getElementById('dispHqTarikh').innerText = safeDate(data['Tarikh Lulus (HQ)']);
-        document.getElementById('dispHqOleh').innerText = data['Diluluskan oleh (HQ)'] || "-";
-        
-        // PPD & PPN -> DISOKONG
-        document.getElementById('dispPpdStatus').innerText = (data['Nilai Dicadangkan (PPD)'] && data['Nilai Dicadangkan (PPD)'] != 0) ? "DISOKONG" : "TIDAK DISOKONG / PROSES";
-        document.getElementById('dispPpnStatus').innerText = (data['Nilai Disokong (PPN)'] && data['Nilai Disokong (PPN)'] != 0) ? "DISOKONG" : "TIDAK DISOKONG / PROSES";
+        const stUpper = String(data['Status Semasa'] || '').toUpperCase();
+        const isLulus = stUpper.includes('LULUS') || (data['Nilai Diluluskan (HQ)'] && data['Nilai Diluluskan (HQ)'] != 0);
+
+        let statusTeks = "DALAM PROSES";
+        if (isLulus) statusTeks = "DILULUSKAN";
+        else if (stUpper.includes('TOLAK') || stUpper.includes('TIADA KELULUSAN')) statusTeks = "TIADA KELULUSAN";
+
+        // Nilai keputusan persidangan Jawatan Kuasa SPeKS Induk
+        document.getElementById('dispHqStatus').innerText = statusTeks;
+        document.getElementById('dispHqCatatan').innerText = data['Catatan (Jawatan Kuasa SPeKS Induk)'] || data['Catatan HQ'] || data['Catatan (Urusetia HQ)'] || "-";
+        document.getElementById('dispHqTarikh').innerText = safeDate(data['Tarikh Pengesahan Jawatan Kuasa SPeKS Induk'] || data['Tarikh Lulus (HQ)'] || data['Tarikh Penilaian Induk']);
+        document.getElementById('dispHqOleh').innerText = data['Pengesah Jawatan Kuasa SPeKS Induk'] || data['Diluluskan oleh (HQ)'] || data['Penilai Urusetia HQ'] || "-";
     }
 
     function loadFiles(id) {
         google.script.run.withSuccessHandler(res => {
-            if(res && res.gambarPemohonDataUrl) document.getElementById('gambarPemohonPreview').src = res.gambarPemohonDataUrl;
-            if(res && res.senaraiFail) {
-                let h = '<ul>';
-                res.senaraiFail.forEach(f => { h += `<li><a href="${f.url}" target="_blank">${f.name}</a></li>`; });
+            // Ambil payload sama ada dari res.data atau res terus
+            const d = res && res.data ? res.data : res;
+            if (!d) return;
+
+            // 1. Gambar Pasport Pemohon (dengan sokongan pautan Google Drive thumbnail)
+            let photoUrl = d.gambarPemohonDataUrl || d['Gambar Pemohon'] || '';
+            if (photoUrl && photoUrl !== '-') {
+                if (photoUrl.includes('drive.google.com')) {
+                    const m1 = photoUrl.match(/id=([^\&]+)/);
+                    const m2 = photoUrl.match(/\/file\/d\/([^\/]+)/);
+                    const fId = m1 ? m1[1] : (m2 ? m2[1] : '');
+                    photoUrl = fId ? 'https://drive.google.com/thumbnail?id=' + fId + '&sz=w400' : photoUrl;
+                }
+                document.getElementById('gambarPemohonPreview').src = photoUrl;
+            }
+
+            // 2. Senarai Dokumen Sokongan
+            const files = d.senaraiFail || d.existingFiles || [];
+            if (files && files.length > 0) {
+                let h = '<ul style="margin:0; padding-left:18px;">';
+                files.forEach(f => { 
+                    h += `<li style="margin-bottom:4px;"><a href="${f.url}" target="_blank" style="color:#005c99; font-weight:600; text-decoration:none;">📄 ${f.name}</a></li>`; 
+                });
                 document.getElementById('fileLinks').innerHTML = h + '</ul>';
+            } else {
+                document.getElementById('fileLinks').innerHTML = '<span class="text-muted">Tiada dokumen sokongan dimuat naik.</span>';
             }
         }).ambilDataPermohonan(id);
     }
