@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semakan Status Pemohon</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    /* ==========================================================================
+       GAYA ASAS (KEKAL STRUKTUR ASAL)
+       ========================================================================== */
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #e6f0fa; margin: 0; padding: 10px; color: #333; }
+    
+    .container { 
+        width: 100%; max-width: 900px; margin: 10px auto; 
+        background-color: #ffffff; padding: 25px 40px; 
+        border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        border-top: 6px solid #153f6a; 
+    }
+
+    /* HEADER - LOGO BESAR 20% (144px) */
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #ccc; }
+    .header img { height: 144px; width: 144px; object-fit: contain; }
+    .header .title { text-align: center; flex-grow: 1; padding: 0 15px; }
+    .header .title h1 { font-size: 20px; font-weight: 700; color: #153f6a; margin: 0; text-transform: uppercase; }
+    .header .title p { font-size: 13px; color: #555; margin: 5px 0 0; font-weight: 600; }
+
+    /* CARIAN */
+    #searchSection { background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; text-align: center; }
+    .search-input { width: 45%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 5px; font-size: 16px; }
+    .btn-search { background-color: #153f6a; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+
+    #resultSection { display: none; }
+
+    /* STATUS BANNER */
+    .status-banner { padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px; color: white; font-weight: bold; font-size: 18px; text-transform: uppercase; }
+    .status-baru { background-color: #17a2b8; }
+    .status-lulus { background-color: #28a745; }
+    .status-tolak { background-color: #dc3545; }
+    .status-proses { background-color: #ffc107; color: black; }
+
+    /* UNIT MAKLUMAT (ANTI-PUTUS) */
+    .field-group { break-inside: avoid; page-break-inside: avoid; display: block; margin-bottom: 3px; }
+
+    h2 { background: linear-gradient(90deg, #99005c 0%, #b3006b 100%); color: white; padding: 8px 15px; border-radius: 5px; font-size: 13px; margin-top: 15px; text-transform: uppercase; }
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 25px; }
+    .grid-full { grid-column: 1 / -1; }
+    
+    label { display: block; margin-top: 5px; font-weight: bold; font-size: 11px; color: #555; }
+    input, select, textarea { 
+        width: 100%; padding: 6px; margin-top: 2px; border: 1px solid #ccc; border-radius: 4px; 
+        background-color: #fcfcfc; color: #333; font-weight: 500; font-size: 12px;
+    }
+    input:disabled, textarea:disabled { background-color: #f8f8f8; border-color: #eee; color: #000; }
+
+    /* ULASAN HQ - HANYA INI DIPAPARKAN */
+    #containerPpd, #containerPpn { display: none; } 
+    h3.ulasan-title { background-color: #e9ecef; color: #333; padding: 8px; font-size: 13px; border-left: 5px solid #153f6a; margin-top: 20px; text-transform: uppercase; }
+    .ulasan-box { background-color: #f8f9fa; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; break-inside: avoid; }
+    .ulasan-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+    .ulasan-label { font-weight: bold; font-size: 11px; color: #555; width: 40%; }
+    .ulasan-value { font-weight: bold; font-size: 11px; color: #000; width: 60%; text-align: right; }
+
+    #gambarPemohonPreview { width: 100px; height: 130px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; display: block; margin: 0 auto; }
+
+    /* LOADER */
+    .loader { border: 5px solid #f3f3f3; border-top: 5px solid #153f6a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .print-header-overlay, .print-footer-overlay { display: none; }
+
+    /* CETAKAN (MAX 2 PAGES) */
+    @media print {
+        @page { size: A4; margin: 0.8cm; }
+        body { background: white; padding: 0; }
+        .container { box-shadow: none; border: none; padding: 0; margin: 0; width: 100%; border-top: none; }
+        #searchSection, .no-print { display: none !important; }
+        #resultSection { display: block !important; }
+        .header img { height: 80px; width: 80px; }
+        h2 { background: #eee !important; color: #000 !important; border: 1px solid #999; margin-top: 8px; padding: 5px 10px; page-break-after: avoid; }
+        .field-group { break-inside: avoid !important; }
+        .print-header-overlay { display: block !important; position: fixed; top: -15px; left: 0; font-size: 8pt; border-bottom: 1px solid #ccc; width: 100%; }
+        .print-footer-overlay { display: block !important; position: fixed; bottom: 0; right: 0; font-size: 8pt; border-top: 1px solid #ccc; text-align: right; width: 100%; }
+        .grid-container { gap: 3px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="print-header-overlay">Sistem Semakan Status e-Permohonan | Jabatan Perikanan Malaysia</div>
+<div class="print-footer-overlay">Tarikh Cetakan: <span id="printDate"></span></div>
+
+<div class="container">
+    <div class="header">
+        <img src="https://raw.githubusercontent.com/usopdrahman/logbookdof/main/LOGO%20JABATAN%20PERIKANAN%20MALAYSIA.png" alt="Jata">
+        <div class="title">
+            <h1 id="mainStatusTitle">Semakan Status Pemohon</h1>
+            <p>Jabatan Perikanan Malaysia</p>
+        </div>
+        <img src="https://github.com/usopdrahman/logbookdof/blob/main/DOF%20LOGO.png?raw=true" alt="DOF">
+    </div>
+
+    <div id="searchSection" class="no-print">
+        <form id="searchForm">
+            <input type="text" id="inputId" class="search-input" placeholder="ID Permohonan">
+            <input type="text" id="inputIC" class="search-input" placeholder="No. Kad Pengenalan">
+            <br><br>
+            <button type="submit" class="btn-search">🔍 Semak Status</button>
+        </form>
+    </div>
+
+    <div id="loader" style="display:none;"><div class="loader"></div><p style="text-align:center; font-size:12px;">Sila tunggu, maklumat sedang diproses...</p></div>
+
+    <div id="resultSection">
+        <div id="statusBanner" class="status-banner">STATUS</div>
+        
+        <div id="formContent">
+            <h2>BAHAGIAN A: BUTIR-BUTIR PEMOHON</h2>
+            <div style="text-align:center; margin-bottom:10px;" class="field-group">
+                <img id="gambarPemohonPreview" src="https://placehold.co/150x200?text=FOTO">
+            </div>
+
+            <div class="grid-container">
+                <div class="field-group"><label>Kategori Projek:</label><input id="kategoriProjek" disabled></div>
+                <div class="field-group"><label>Jenis Pemohon:</label><input id="jenisPemohon" disabled></div>
+                <div class="grid-full field-group"><label>Nama Pemohon/Syarikat:</label><input id="nama" disabled></div>
+                <div class="grid-full field-group" id="divOrangPerhubungan" style="display:none;"><label>Nama Orang Perhubungan:</label><input id="orangPerhubungan" disabled></div>
+                <div class="field-group"><label>No. KP / Pendaftaran:</label><input id="nokp" disabled></div>
+                <div class="field-group"><label>No. Telefon:</label><input id="telefon" disabled></div>
+                <div class="field-group"><label>Status Insolvensi:</label><input id="statusInsolvensi" disabled></div>
+                <div class="field-group"><label>Emel:</label><input id="emel" disabled></div>
+                <div class="grid-full field-group"><label>Alamat Surat Menyurat:</label><textarea id="alamat" rows="2" disabled></textarea></div>
+                <div class="field-group"><label>Negeri:</label><input id="negeri" disabled></div>
+                <div class="field-group"><label>Daerah:</label><input id="daerah" disabled></div>
+                <div class="grid-full field-group"><label>Kategori Sasar:</label><input id="kategoriSasar" disabled></div>
+            </div>
+
+            <h2>BAHAGIAN B: BUTIR-BUTIR PERUSAHAAN</h2>
+            <div class="grid-container">
+                <div class="field-group"><label>Jenis Perusahaan:</label><input id="jenisPerusahaan" disabled></div>
+                <div class="field-group"><label id="lblStatusDaftar">Status Pendaftaran:</label><input id="statusPendaftaranJabatan" disabled></div>
+                <div class="field-group"><label>No. Pendaftaran:</label><input id="noPendaftaran" disabled></div>
+                <div class="field-group"><label>No. Lesen SKL/Premis:</label><input id="noLesen" disabled></div>
+                <div class="grid-full field-group"><label>Alamat Perusahaan:</label><textarea id="alamatPerusahaan" rows="2" disabled></textarea></div>
+                <div class="field-group"><label>Negeri Perusahaan:</label><input id="negeriPerusahaan" disabled></div>
+                <div class="field-group"><label>Daerah Perusahaan:</label><input id="daerahPerusahaan" disabled></div>
+                <div class="grid-full field-group"><label>Spesies Ternakan:</label><input id="spesiesTernakan" disabled></div>
+                <div class="grid-full field-group"><label>Punca Modal:</label><textarea id="puncaModal" rows="1" disabled></textarea></div>
+                <div class="field-group"><label>Jenis Bantuan Dimohon:</label><input id="jenisBantuan" disabled></div>
+                <div class="field-group"><label>Nilai Dimohon (RM):</label><input id="nilaiBantuanyangdimohon" disabled></div>
+                <div class="grid-full field-group"><label>Bantuan Terdahulu:</label><textarea id="bantuanLalu" rows="1" disabled></textarea></div>
+            </div>
+
+            <div class="field-group">
+                <h2>BAHAGIAN C: KEMAHIRAN & PENGALAMAN</h2>
+                <div class="grid-container">
+                    <div class="grid-full field-group"><label>Pengalaman (Tahun):</label><textarea id="tahunPengalaman" rows="1" disabled></textarea></div>
+                    <div class="grid-full field-group"><label>Kursus Disertai:</label><textarea id="kursus" rows="2" disabled></textarea></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <h2>BAHAGIAN D: DOKUMEN SOKONGAN</h2>
+                <div id="fileLinks" style="padding:10px; background:#f9f9f9; border:1px dashed #ccc; font-size:11px;"></div>
+            </div>
+
+            <div class="field-group">
+                <h2>BAHAGIAN E: AKUAN PEMOHON</h2>
+                <div style="background-color:#f8f9fa; padding:10px; border-radius:6px; border:1px solid #ddd; font-size:11px;">
+                    Saya mengaku maklumat di atas adalah benar.
+                </div>
+            </div>
+        </div>
+
+        <div id="ulasanSection">
+            <div id="containerPpd" style="display:none;"><span id="dispPpdStatus"></span><span id="dispPpdCatatan"></span><span id="dispPpdTarikh"></span><span id="dispPpdOleh"></span></div>
+            <div id="containerPpn" style="display:none;"><span id="dispPpnStatus"></span><span id="dispPpnCatatan"></span><span id="dispPpnTarikh"></span><span id="dispPpnOleh"></span></div>
+
+            <h3 class="ulasan-title">ULASAN JAWATANKUASA PEMILIHAN (HQ)</h3>
+            <div class="ulasan-box">
+                <div class="ulasan-row"><span class="ulasan-label">Status Kelulusan (HQ):</span><span class="ulasan-value" id="dispHqStatus">-</span></div>
+                <div class="ulasan-row"><span class="ulasan-label">Catatan HQ:</span><span class="ulasan-value" id="dispHqCatatan">-</span></div>
+                <div class="ulasan-row"><span class="ulasan-label">Tarikh Keputusan:</span><span class="ulasan-value" id="dispHqTarikh">-</span></div>
+                <div class="ulasan-row" style="border-bottom:none;"><span class="ulasan-label">Diluluskan oleh (HQ):</span><span class="ulasan-value" id="dispHqOleh">-</span></div>
+            </div>
+        </div>
+
+        <div class="no-print" style="text-align:center; margin-top:15px; padding-bottom:30px;">
+            <button onclick="window.print()" style="background-color:#28a745; color:white; padding:12px 30px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">🖨️ Cetak</button>
+            <button onclick="window.location.reload()" style="background-color:#6c757d; color:white; padding:12px 30px; border:none; border-radius:5px; cursor:pointer; margin-left:10px;">Semak Semula</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('printDate').innerText = new Date().toLocaleString('en-MY');
+
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('inputId').value.trim();
+        const ic = document.getElementById('inputIC').value.trim();
+        if(!id && !ic) return;
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('searchSection').style.display = 'none';
+
+        google.script.run
+            .withSuccessHandler(paparkanKeputusan)
+            .withFailureHandler(err => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('searchSection').style.display = 'block';
+                Swal.fire('Ralat', err.message, 'error');
+            })
+            .semakStatusPermohonan(id, ic);
+    });
+
+    function paparkanKeputusan(data) {
+        document.getElementById('loader').style.display = 'none';
+        if(!data.success) {
+            Swal.fire('Tiada Rekod', 'Permohonan tidak dijumpai.', 'error');
+            document.getElementById('searchSection').style.display = 'block';
+            return;
+        }
+        document.getElementById('resultSection').style.display = 'block';
+        
+        // --- LOGIK TAJUK DINAMIK ---
+        const appId = String(data['ID Permohonan']).toUpperCase();
+        const mainTitle = document.getElementById('mainStatusTitle');
+        if(appId.includes("TSAPP")) {
+          mainTitle.innerText = "SEMAKAN STATUS PEMOHON TSAPP";
+        } else if(appId.includes("SPEKS")) {
+          mainTitle.innerText = "SEMAKAN STATUS PEMOHON SPEKS";
+        } else {
+          mainTitle.innerText = "SEMAKAN STATUS PEMOHON";
+        }
+
+        const status = data['Status Semasa'] || 'Baru';
+        const banner = document.getElementById('statusBanner');
+        banner.innerText = "STATUS: " + status.toUpperCase();
+        banner.className = 'status-banner ' + (status === 'Diluluskan' ? 'status-lulus' : status === 'Ditolak' ? 'status-tolak' : status.includes('Disokong') ? 'status-proses' : 'status-baru');
+
+        const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || '-'; };
+        setVal('kategoriProjek', data['Kategori Projek']);
+        setVal('jenisPemohon', data['Jenis Pemohon']);
+        setVal('nama', data['Nama Pemohon']);
+        setVal('nokp', data['No Kad Pengenalan']);
+        setVal('telefon', data['No Telefon']);
+        setVal('statusInsolvensi', data['Status Insolvensi']);
+        setVal('emel', data['Emel']);
+        setVal('alamat', data['Alamat Surat Menyurat']);
+        setVal('negeri', data['Negeri']);
+        setVal('daerah', data['Daerah']);
+        setVal('kategoriSasar', data['Kategori Kumpulan Sasar']);
+        if(data['Nama Orang Perhubungan']) { document.getElementById('divOrangPerhubungan').style.display = 'block'; setVal('orangPerhubungan', data['Nama Orang Perhubungan']); }
+
+        setVal('jenisPerusahaan', data['Jenis Perusahaan']);
+        setVal('statusPendaftaranJabatan', data['Sebab Bantuan (SPEKS) / Status Pendaftaran (TSAPP)']);
+        setVal('noPendaftaran', data['No Pendaftaran Nelayan / Ladang']);
+        setVal('noLesen', data['No. Lesen SKL/ Premis Akuakultur']);
+        setVal('alamatPerusahaan', data['Alamat Perusahaan']);
+        setVal('negeriPerusahaan', data['Negeri Perusahaan']);
+        setVal('daerahPerusahaan', data['Daerah Perusahaan']);
+        setVal('spesiesTernakan', data['Spesies Ternakan']);
+        setVal('puncaModal', data['Punca Modal']);
+        setVal('jenisBantuan', data['Jenis Bantuan Yang Dimohon']);
+        setVal('nilaiBantuanyangdimohon', data['Nilai Bantuan Yang Dimohon (RM)']);
+        setVal('bantuanLalu', data['Bantuan Yang Pernah Diterima']);
+        setVal('tahunPengalaman', data['Tahun Pengalaman']);
+        setVal('kursus', data['Kursus Yang Pernah Disertai']);
+
+        paparUlasan(data);
+        loadFiles(data['ID Permohonan']);
+    }
+
+    function paparUlasan(data) {
+        const safeDate = (d) => {
+            if(!d || d == 0 || d == "") return "-";
+            const dt = new Date(d);
+            return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-MY');
+        };
+        
+        // HQ -> DILULUSKAN
+        document.getElementById('dispHqStatus').innerText = (data['Nilai Diluluskan (HQ)'] && data['Nilai Diluluskan (HQ)'] != 0) ? "DILULUSKAN" : "TIDAK DILULUSKAN / PROSES";
+        document.getElementById('dispHqCatatan').innerText = data['Catatan HQ'] || "-";
+        document.getElementById('dispHqTarikh').innerText = safeDate(data['Tarikh Lulus (HQ)']);
+        document.getElementById('dispHqOleh').innerText = data['Diluluskan oleh (HQ)'] || "-";
+        
+        // PPD & PPN -> DISOKONG
+        document.getElementById('dispPpdStatus').innerText = (data['Nilai Dicadangkan (PPD)'] && data['Nilai Dicadangkan (PPD)'] != 0) ? "DISOKONG" : "TIDAK DISOKONG / PROSES";
+        document.getElementById('dispPpnStatus').innerText = (data['Nilai Disokong (PPN)'] && data['Nilai Disokong (PPN)'] != 0) ? "DISOKONG" : "TIDAK DISOKONG / PROSES";
+    }
+
+    function loadFiles(id) {
+        google.script.run.withSuccessHandler(res => {
+            if(res && res.gambarPemohonDataUrl) document.getElementById('gambarPemohonPreview').src = res.gambarPemohonDataUrl;
+            if(res && res.senaraiFail) {
+                let h = '<ul>';
+                res.senaraiFail.forEach(f => { h += `<li><a href="${f.url}" target="_blank">${f.name}</a></li>`; });
+                document.getElementById('fileLinks').innerHTML = h + '</ul>';
+            }
+        }).ambilDataPermohonan(id);
+    }
+</script>
+</body>
+</html>
