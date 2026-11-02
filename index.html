@@ -1,33 +1,660 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="ms" class="scroll-smooth">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>eSPeKS - Portal Pengurusan SPeKS</title>
-  <link rel="icon" type="image/png" href="https://github.com/usopdrahman/logbookdof/raw/73ed286cf242b8c25306d0bb2bc26cee6bdc6c56/espeks%20logo.png">
-  <style>
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #001e3c;
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Permohonan Insentif Akuakultur - DOF</title>
+  
+  <!-- Fonts & Tailwind CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons for UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            dof: {
+              50: '#f0f7ff', 100: '#e0effe', 200: '#b9defe', 300: '#7cc2fd', 400: '#36a2fc',
+              500: '#0c86eb', 600: '#0069cb', 700: '#0153a3', 800: '#054786', 900: '#0a3c6f', 950: '#001e3c',
+            },
+            tealbrand: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf',
+              500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 950: '#004d40',
+            },
+            // TAMBAH KELAS WARNA BIOSEKURITI (EMERALD)
+            biobrand: {
+              50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399',
+              500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 950: '#022c22',
+            },
+            // TAMBAH KELAS WARNA PENGEMBANGAN (INDIGO/PURPLE)
+            devbrand: {
+              50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8',
+              500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 950: '#1e1b4b',
+            }
+          }
+        }
+      }
     }
-    iframe {
+  </script>
+
+  <style>
+    /* Custom Aquatic Ambient Styles */
+    .bg-aquatic-gradient {
+      background: radial-gradient(circle at top right, rgba(0, 180, 216, 0.15) 0%, rgba(0, 30, 60, 0) 60%),
+                  linear-gradient(135deg, #001e3c 0%, #004d61 50%, #002e44 100%);
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .glass-card {
+      background: rgba(10, 30, 55, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Soft animated wave backdrop element */
+    .wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
       width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
+      height: 100px;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%2300b4d8" fill-opacity="0.1" d="M0,224L60,208C120,192,240,160,360,165.3C480,171,600,213,720,202.7C840,192,960,128,1080,112C1200,96,1320,128,1380,144L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path></svg>');
+      background-size: 1440px 100px;
+      animation: waveMove 12s linear infinite alternate;
+    }
+
+    @keyframes waveMove {
+      0% { background-position-x: 0px; }
+      100% { background-position-x: 700px; }
+    }
+
+    /* Floating bubbles */
+    .bubble {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      bottom: -50px;
+      animation: floatUp 15s infinite ease-in;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.4;
+      }
+      90% {
+        opacity: 0.4;
+      }
+      100% {
+        transform: translateY(-100vh) scale(1.2);
+        opacity: 0;
+      }
     }
   </style>
 </head>
-<body>
-  <iframe 
-    src="https://script.google.com/macros/s/AKfycbwsa_ccL8AYUbg0GqIbsNqmFOYdJY-BFngNN0Fdma7aVk9y8RhjeS4zRWEqP-Z4r2N2/exec"
-    allow="geolocation; camera; microphone"
-    allowfullscreen>
-  </iframe>
+
+<body class="bg-aquatic-gradient min-h-screen text-slate-800 dark:text-slate-100 flex flex-col justify-between items-center p-4 pt-0 md:p-8 md:pt-4 relative overflow-x-hidden">
+
+  <!-- Background Animated Bubbles -->
+  <div id="bubble-container" class="absolute inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+  <!-- Header Bar -->
+  <header class="sticky top-0 z-50 w-[calc(100%+2rem)] -mx-4 -mt-0 md:w-full md:mx-0 md:mt-0 mb-6 bg-dof-950/90 backdrop-blur-md border-b border-white/10 py-3 px-4 sm:px-8 transition-all duration-300">
+    <div class="w-full max-w-7xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      
+      <!-- Logo & Tajuk -->
+      <div class="flex items-center gap-2.5 w-full sm:w-auto">
+        <img src="https://github.com/usopdrahman/logbookdof/blob/main/DOF%20LOGO.png?raw=true" 
+             alt="Logo DOF" 
+             class="h-10 sm:h-12 w-auto flex-shrink-0 filter drop-shadow-[0_2px_8px_rgba(0,180,216,0.5)] transition-all duration-300 hover:scale-105"
+             onerror="this.src='https://placehold.co/120x150/003366/FFFFFF?text=DOF+LOGO'">
+        
+        <div class="flex-1 min-w-0">
+          <h1 class="text-xs min-[380px]:text-sm sm:text-base font-bold text-white tracking-wider uppercase leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+            Jabatan Perikanan Malaysia
+          </h1>
+          <p class="text-[10px] sm:text-xs text-cyan-200 uppercase font-medium leading-snug break-words mt-0.5">
+            Sistem Penyampaian dan Khidmat Sokongan (SPeKS)
+          </p>
+        </div>
+      </div>
+
+      <!-- Theme Toggle & Help Controls -->
+      <div class="flex items-center justify-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t border-white/10 sm:border-0">
+        <button onclick="toggleDarkMode()" 
+                class="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all duration-200" 
+                title="Tukar Tema (Gelap/Cerah)"
+                aria-label="Tukar Tema">
+          <i id="theme-icon" class="fas fa-moon text-xs sm:text-base"></i>
+        </button>
+        <button onclick="openHelpModal()" 
+                class="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all duration-200 flex items-center justify-center gap-2 px-3.5 sm:px-4"
+                title="Hubungi Bantuan">
+          <i class="fas fa-headset text-xs sm:text-base"></i>
+          <span class="text-xs font-semibold">Bantuan</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Grid / Portal Container -->
+  <main class="w-full max-w-4xl glass-card rounded-2xl shadow-2xl relative overflow-hidden z-10 transition-all duration-300">
+    <!-- Top accent active banner -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-teal-500 via-cyan-400 to-blue-600"></div>
+    
+    <div class="p-6 md:p-10">
+      
+      <!-- Intro Section -->
+      <div class="text-center mb-8">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-300 mb-3 border border-cyan-200 dark:border-cyan-800/40">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+          Tahun Kewangan dan Program Semasa Masih Aktif
+        </span>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-dof-900 dark:text-white tracking-tight">
+          Portal Permohonan Bantuan SPeKS
+        </h2>
+        <p class="text-sm text-slate-500 dark:text-slate-300 mt-2 max-w-lg mx-auto">
+          Sila pilih kategori di bawah yang sepadan dengan jenis perusahaan anda.
+        </p>
+      </div>
+
+      <!-- CARD 1: SPeKS (Akuakultur Input - TERUS PAPAR SYARAT KELAYAKAN) -->
+      <div class="grid grid-cols-1 gap-6 mb-8">
+        <div id="card-speks" class="group relative flex flex-col bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:border-tealbrand-400 dark:hover:border-tealbrand-700 transition-all duration-300">
+          
+          <div class="flex flex-col md:flex-row flex-1">
+            <!-- Side visual tag (color-coded) -->
+            <div class="md:w-3 bg-gradient-to-b from-tealbrand-500 to-teal-600"></div>
+            
+            <div class="flex-1 p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-tealbrand-500/10 text-tealbrand-600 dark:text-tealbrand-400 border border-tealbrand-500/20">
+                    Insentif Input Akuakultur
+                  </span>
+                </div>
+                
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-tealbrand-600 dark:group-hover:text-tealbrand-400 transition-colors">
+                  Sistem Penyampaian dan Khidmat Sokongan (Akuakultur)
+                </h3>
+                <p class="text-[11px] font-medium text-slate-400 mb-3 uppercase tracking-wide">
+                  SPeKS Akuakultur
+                </p>
+                
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  Sistem Penyampaian dan Khimat Sokongan (SPeKS) Akuakultur merangkumi bantuan sistem, teknologi, peralatan dan input ternakan kepada pengusaha akuakultur yang berkelayakan.
+                </p>
+
+                <!-- Quick details list -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-fish text-tealbrand-500 w-4 text-center"></i>
+                    <span>Benih ikan/udang berkualiti</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-cubes text-tealbrand-500 w-4 text-center"></i>
+                    <span>Tangki fiber, kanvas, sangkar</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-utensils text-tealbrand-500 w-4 text-center"></i>
+                    <span>Sokongan makanan ikan (pelet)</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-tools text-tealbrand-500 w-4 text-center"></i>
+                    <span>Peralatan sampingan sokongan</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action button container -->
+              <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                <a href="<?= url ?>?page=borang_speks" 
+                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm bg-gradient-to-r from-tealbrand-600 to-teal-500 text-white hover:from-tealbrand-700 hover:to-tealbrand-600 hover:scale-[1.01] active:scale-[0.98] shadow-md transition-all duration-200">
+                  <i class="fas fa-wpforms"></i>
+                  Mohon SPeKS Akuakultur Sekarang
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKSYEN KELAYAKAN & DOKUMEN TERUS DIPAPARKAN (ALWAYS EXPANDED) -->
+          <div class="bg-tealbrand-50/40 dark:bg-tealbrand-950/20 border-t border-tealbrand-200/60 dark:border-tealbrand-900/50 p-6 text-xs">
+            <div class="flex items-center mb-3 pb-2 border-b border-tealbrand-200/50 dark:border-tealbrand-900/40">
+              <span class="font-bold text-tealbrand-800 dark:text-tealbrand-300 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                <i class="fas fa-clipboard-check text-tealbrand-600 dark:text-tealbrand-400"></i> Syarat Kelayakan dan Dokumen Wajib (SPeKS)
+              </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-600 dark:text-slate-300">
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                  <i class="fas fa-user-check text-tealbrand-500"></i> Syarat Kelayakan Peserta:
+                </h4>
+                <ul class="list-disc list-inside space-y-1.5 pl-1 leading-relaxed">
+                  <li>Warganegara Malaysia (Berumur 18 tahun ke atas).</li>
+                  <li>Pengusaha individu atau berkelompok atau syarikat yang berminat.</li>
+                  <li>Pemohon berdaftar dengan Jabatan Perikanan Malaysia.</li>
+                  <li>Pemohon mempunyai pemilikan / kebenaran penggunaan tanah yang sah.</li>
+                  <li>Mempunyai pengalaman bekerja dalam bidang akuakultur.</li>
+                  <li>Keutamaan diberikan kepada pengusaha yang telah mengusahakan sekurang-kurangnya satu pusingan ternakan dan mempunyai hasil bagi Program Penstrukturan Semula dan Pembangunan Komuniti Akuakultur dan Program Pembangunan Usahawan Siswazah (Akuakultur).</li>
+                  <li>Syarikat berdaftar di Malaysia dan pegangan majoriti saham 51 % dimiliki atau usaha sama (Joint Venture) oleh rakyat Malaysia.</li>
+                  <li>Pemohon digalakkan menyertai program Amalan Akuakultur Baik Jabatan Perikanan Malaysia iaitu MyGAP.</li>
+                  <li>Pemohon bebas dari tindakan muflis daripada mana-mana mahkamah.</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                  <i class="fas fa-file-lines text-tealbrand-500"></i> Dokumen Diperlukan (Sediakan Muat Naik):
+                </h4>
+                <ul class="list-disc list-inside space-y-1.5 pl-1 leading-relaxed">
+                  <li>Salinan Kad Pengenalan (MyKad) pemohon.</li>
+                  <li>Dokumen Rancangan Perniagaan.</li>
+                  <li>Sijil SSM (Bagi kategori syarikat).</li>
+                  <li>Geran tanah tapak atau surat perjanjian sewa/pajakan bertandatangan.</li>
+                  <li>Gambar situasi tapak penternakan terkini (menunjukkan keadaan kolam/tangki/sangkar).</li>
+                  <li>Sijil pendaftaran perikanan atau lesen penternakan (jika ada).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CARD 2: SPeKS (Biosekuriti - HIJAU EMERALD) -->
+      <div class="grid grid-cols-1 gap-6 mb-8">
+        <div id="card-speks-bio" class="group relative flex flex-col bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:border-biobrand-400 dark:hover:border-biobrand-700 transition-all duration-300">
+          
+          <div class="flex flex-col md:flex-row flex-1">
+            <!-- Side visual tag (color-coded Emerald) -->
+            <div class="md:w-3 bg-gradient-to-b from-biobrand-500 to-emerald-600"></div>
+            
+            <div class="flex-1 p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-biobrand-500/10 text-biobrand-600 dark:text-biobrand-400 border border-biobrand-500/20">
+                    Insentif Input Biosekuriti
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    <i class="fas fa-clock me-1"></i> Belum Beroperasi
+                  </span>
+                </div>
+                
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-biobrand-600 dark:group-hover:text-biobrand-400 transition-colors">
+                  Sistem Penyampaian dan Khidmat Sokongan (Biosekuriti)
+                </h3>
+                <p class="text-[11px] font-medium text-slate-400 mb-3 uppercase tracking-wide">
+                  SPeKS Biosekuriti
+                </p>
+                
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  Sistem Penyampaian dan Khidmat Sokongan (SPeKS) Biosekuriti merangkumi bantuan bagi meningkatkan kualiti biosekuriti di ladang ternakan pengusaha akuakultur yang berkelayakan.
+                </p>
+
+                <!-- Quick details list -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-shield-virus text-biobrand-500 w-4 text-center"></i>
+                    <span>Peralatan Biosekuriti Ladang</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-pump-medical text-biobrand-500 w-4 text-center"></i>
+                    <span>Sistem Sanitasi & Disinfeksi</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-vial-circle-check text-biobrand-500 w-4 text-center"></i>
+                    <span>Peralatan Ujian & Kawalan Air</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-kit-medical text-biobrand-500 w-4 text-center"></i>
+                    <span>Peralatan Sampingan Sokongan</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action button container (DISABLED) -->
+              <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                <button type="button" disabled 
+                        class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none border border-slate-300/60 dark:border-slate-700/60">
+                  <i class="fas fa-lock"></i>
+                  Permohonan Belum Dibuka (Dalam Pembangunan)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKSYEN KELAYAKAN & DOKUMEN -->
+          <div class="bg-biobrand-50/40 dark:bg-biobrand-950/20 border-t border-biobrand-200/60 dark:border-biobrand-900/50 p-6 text-xs">
+            <div class="flex items-center mb-3 pb-2 border-b border-biobrand-200/50 dark:border-biobrand-900/40">
+              <span class="font-bold text-biobrand-800 dark:text-biobrand-300 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                <i class="fas fa-clipboard-check text-biobrand-600 dark:text-biobrand-400"></i> Syarat Kelayakan dan Dokumen Wajib (Biosekuriti)
+              </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-600 dark:text-slate-300">
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                  <i class="fas fa-user-check text-biobrand-500"></i> Syarat Kelayakan Peserta:
+                </h4>
+                <ul class="list-disc list-inside space-y-1.5 pl-1 leading-relaxed">
+                  <li>Warganegara Malaysia (Berumur 18 tahun ke atas).</li>
+                  <li>Pengusaha individu atau berkelompok atau syarikat yang berminat.</li>
+                  <li>(Akan dikemaskini bersama Bahagian Biosekuriti).</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                  <i class="fas fa-file-lines text-biobrand-500"></i> Dokumen Diperlukan (Sediakan Muat Naik):
+                </h4>
+                <ul class="list-disc list-inside space-y-1.5 pl-1 leading-relaxed">
+                  <li>Salinan Kad Pengenalan (MyKad) pemohon.</li>
+                  <li>(Akan dikemaskini bersama Bahagian Biosekuriti).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: SPeKS (Pengembangan - UNGU INDIGO) -->
+      <div class="grid grid-cols-1 gap-6 mb-8">
+        <div id="card-speks-dev" class="group relative flex flex-col bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:border-devbrand-400 dark:hover:border-devbrand-700 transition-all duration-300">
+          
+          <div class="flex flex-col md:flex-row flex-1">
+            <!-- Side visual tag (color-coded Indigo) -->
+            <div class="md:w-3 bg-gradient-to-b from-devbrand-500 to-indigo-600"></div>
+            
+            <div class="flex-1 p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-devbrand-500/10 text-devbrand-600 dark:text-devbrand-400 border border-devbrand-500/20">
+                    Insentif Input Pengembangan
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    <i class="fas fa-clock me-1"></i> Belum Beroperasi
+                  </span>
+                </div>
+                
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-devbrand-600 dark:group-hover:text-devbrand-400 transition-colors">
+                  Sistem Penyampaian dan Khidmat Sokongan (Pengembangan)
+                </h3>
+                <p class="text-[11px] font-medium text-slate-400 mb-3 uppercase tracking-wide">
+                  SPeKS Pengembangan
+                </p>
+                
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  Sistem Penyampaian dan Khidmat Sokongan (SPeKS) Pengembangan merangkumi bantuan peralatan pemprosesan industri hiliran seperti peti sejuk, mesin bebola ikan dll. kepada pengusaha berdaftar yang berkelayakan.
+                </p>
+
+                <!-- Quick details list -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-snowflake text-devbrand-500 w-4 text-center"></i>
+                    <span>Peti Sejuk / Freezer</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-gears text-devbrand-500 w-4 text-center"></i>
+                    <span>Mesin Bebola Ikan</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-kitchen-set text-devbrand-500 w-4 text-center"></i>
+                    <span>Mesin Siang & Pemprosesan</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <i class="fas fa-box text-devbrand-500 w-4 text-center"></i>
+                    <span>Peralatan Sampingan Pembungkusan</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action button container (DISABLED) -->
+              <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                <button type="button" disabled 
+                        class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none border border-slate-300/60 dark:border-slate-700/60">
+                  <i class="fas fa-lock"></i>
+                  Permohonan Belum Dibuka (Dalam Pembangunan)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKSYEN KELAYAKAN & DOKUMEN -->
+          <div class="bg-devbrand-50/40 dark:bg-devbrand-950/20 border-t border-devbrand-200/60 dark:border-devbrand-900/50 p-6 text-xs">
+            <div class="flex items-center mb-3 pb-2 border-b border-devbrand-200/50 dark:border-devbrand-900/40">
+              <span class="font-bold text-devbrand-800 dark:text-devbrand-300 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                <i class="fas fa-clipboard-check text-devbrand-600 dark:text-devbrand-400"></i> Syarat Kelayakan dan Dokumen Wajib (Pengembangan)
+              </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-600 dark:text-slate-300">
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                  <i class="fas fa-user-check text-devbrand-500"></i> Syarat Kelayakan Peserta:
+                </h4>
+                <ul class="list-disc list-inside space-y-1.5 pl-1 leading-relaxed">
+                  <li>Warganegara Malaysia (Berumur 18 tahun ke atas).</li>
+                  <li>Pengusaha individu atau berkelompok atau syarikat yang berminat.</li>
+                  <li>(Akan dikemaskini bersama Bahagian Pengembangan).</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                  <i class="fas fa-file-lines text-devbrand-500"></i> Dokumen Diperlukan (Sediakan Muat Naik):
+                </h4>
+                <ul class="list-disc list-inside space-y-1.5 pl-1 leading-relaxed">
+                  <li>Salinan Kad Pengenalan (MyKad) pemohon.</li>
+                  <li>(Akan dikemaskini bersama Bahagian Pengembangan).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background subtle design waves inside card bottom -->
+    <div class="wave opacity-30 pointer-events-none"></div>
+  </main>
+
+  <!-- Interactive Help Modal Dialogue -->
+  <div id="help-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-xl shadow-2xl overflow-hidden transition-all duration-300 scale-95 opacity-0 transform" id="help-modal-box">
+      <div class="h-1.5 w-full bg-cyan-500"></div>
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="fas fa-headset text-cyan-500"></i> Bantuan dan Sokongan
+          </h3>
+          <button onclick="closeHelpModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="space-y-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p>Jika anda menghadapi sebarang kesukaran teknikal dalam pengisian borang permohonan dalam talian ini, sila hubungi Bahagian Akuakultur:</p>
+          
+          <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg space-y-2 border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-phone text-cyan-500 w-5 text-center"></i>
+              <span class="font-medium">+603-8870 4762 (Talian Utama)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fas fa-envelope text-cyan-500 w-5 text-center"></i>
+              <span class="font-medium">aquasys@dof.gov.my</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fas fa-clock text-cyan-500 w-5 text-center"></i>
+              <span>Isnin - Jumaat (8.00 Pagi - 5.00 Petang)</span>
+            </div>
+          </div>
+
+          <p class="text-[10px] text-slate-400">Aras 1-6, Blok 4G2, Wisma Tani, No. 30, Persiaran Perdana, Presint 4, Pusat Pentadbiran Kerajaan Persekutuan, 62628 Putrajaya.</p>
+        </div>
+
+        <button onclick="closeHelpModal()" class="mt-6 w-full py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-xs tracking-wider transition-all">
+          Kembali
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer section -->
+  <footer class="w-full max-w-4xl text-center mt-8 py-4 border-t border-white/10 text-white/50 text-[11px] z-10 space-y-1">
+    <p>&copy; 2026 Jabatan Perikanan Malaysia. Hak Cipta Terpelihara.</p>
+    <p class="font-medium text-cyan-300">Sistem Penyampaian Dan Khidmat Sokongan (SPeKS)</p>
+  </footer>
+
+  <!-- Pure JS Scripts -->
+  <script>
+    // Theme logic - check system preferences or storage
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      updateThemeIcon(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      updateThemeIcon(false);
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.theme = isDark ? 'dark' : 'light';
+      updateThemeIcon(isDark);
+    }
+
+    function updateThemeIcon(isDark) {
+      const icon = document.getElementById('theme-icon');
+      if (isDark) {
+        icon.className = 'fas fa-sun text-amber-400';
+      } else {
+        icon.className = 'fas fa-moon text-indigo-200';
+      }
+    }
+
+    // Interactive Wizard State Management
+    let wizardAnswers = {};
+
+    function toggleWizard() {
+      const container = document.getElementById('wizard-container');
+      const icon = document.getElementById('wizard-toggle-icon');
+      const btnSpan = document.querySelector('#wizard-toggle-btn span');
+
+      if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        setTimeout(() => {
+          container.style.maxHeight = "500px";
+        }, 10);
+        icon.classList.add('rotate-180');
+        btnSpan.textContent = "Tutup Semakan";
+        resetWizard();
+      } else {
+        container.style.maxHeight = "0px";
+        setTimeout(() => {
+          container.classList.add('hidden');
+        }, 300);
+        icon.classList.remove('rotate-180');
+        btnSpan.textContent = "Buka Semakan";
+      }
+    }
+
+    function nextWizardStep(stepNumber, answer) {
+      if (stepNumber === 2) {
+        wizardAnswers.scale = answer;
+        document.getElementById('wizard-step-1').classList.add('hidden');
+        document.getElementById('wizard-step-2').classList.remove('hidden');
+      } else if (stepNumber === 3) {
+        wizardAnswers.focus = answer;
+        document.getElementById('wizard-step-2').classList.add('hidden');
+        document.getElementById('wizard-step-3').classList.remove('hidden');
+        evaluateWizardRecommendation();
+      }
+    }
+
+    function resetWizard() {
+      wizardAnswers = {};
+      document.getElementById('wizard-step-1').classList.remove('hidden');
+      document.getElementById('wizard-step-2').classList.add('hidden');
+      document.getElementById('wizard-step-3').classList.add('hidden');
+    }
+
+    function evaluateWizardRecommendation() {
+      const recText = document.getElementById('wizard-recommendation');
+      recText.innerHTML = "Program <strong>SPeKS</strong> sangat sesuai untuk anda! Ia menawarkan bantuan input asas, benih berkualiti, serta tangki/kanvas mengikut kesesuaian operasi anda.";
+    }
+
+    function focusOnRecommended() {
+      const targetElement = document.getElementById('card-speks');
+      toggleWizard();
+
+      targetElement.classList.add('ring-4', 'ring-cyan-500/50');
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      setTimeout(() => {
+        targetElement.classList.remove('ring-4', 'ring-cyan-500/50');
+      }, 2500);
+    }
+
+    // Modal Controls
+    function openHelpModal() {
+      const modal = document.getElementById('help-modal');
+      const box = document.getElementById('help-modal-box');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        box.classList.remove('scale-95', 'opacity-0');
+        box.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closeHelpModal() {
+      const modal = document.getElementById('help-modal');
+      const box = document.getElementById('help-modal-box');
+      box.classList.remove('scale-100', 'opacity-100');
+      box.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    // Generate Ambient Dynamic Aquatic Bubbles
+    window.onload = function() {
+      const container = document.getElementById('bubble-container');
+      const bubbleCount = 12;
+      
+      for(let i = 0; i < bubbleCount; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        
+        const size = Math.random() * 24 + 8;
+        const leftPos = Math.random() * 100;
+        const animDuration = Math.random() * 8 + 8;
+        const animDelay = Math.random() * 6;
+        
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.left = `${leftPos}%`;
+        bubble.style.animationDuration = `${animDuration}s`;
+        bubble.style.animationDelay = `${animDelay}s`;
+        
+        container.appendChild(bubble);
+      }
+    }
+  </script>
 </body>
 </html>
