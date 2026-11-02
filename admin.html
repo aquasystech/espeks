@@ -4771,7 +4771,6 @@ function escapeHtmlInduk(value) {
     const tahun = document.getElementById('assessment-batch-year').value;
     if (!bil || !tahun) return;
 
-    ';
     const negeri = currentUser ? (currentUser.negeri || '') : '';
     let batchKey = '';
     if (stage === 'negeri') {
