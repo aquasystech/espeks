@@ -1977,19 +1977,16 @@
     return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
   
-  let activationToken = "";
-  let scriptUrl = "";
+  // Membaca token dan URL daripada parameter pelayar secara langsung di GitHub Pages
+  const urlParams = new URLSearchParams(window.location.search);
+  let activationToken = urlParams.get('activate') || urlParams.get('token') || "";
+  let scriptUrl = window.location.href.split('?')[0];
 
   let searchTimeout;
   function debounceSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => { filterTable(); }, 350);
   }
-
-  try {
-     activationToken = "<?!= typeof activateToken !== 'undefined' ? activateToken : '' ?>";
-     scriptUrl = "<?!= typeof url !== 'undefined' ? url : '' ?>";
-  } catch(e) { console.warn("Templating token check skipped."); }
 
   const statusAliases = {
     'KEMASKINI_PEMOHON': 'KEMASKINI PEMOHON',
@@ -2141,7 +2138,7 @@
     google.script.run.withSuccessHandler(res => {
       if (res && res.success) {
         Swal.fire({ title: 'Berjaya', text: 'Maklumat berjaya dikemaskini. Sila log masuk.', icon: 'success' })
-        .then(() => { window.top.location.href = scriptUrl !== "" ? scriptUrl + "?page=admin" : "URL_APPS_SCRIPT_ANDA_DI_SINI"; });
+        .then(() => { window.location.href = "admin.html"; });
       } else {
         Swal.fire('Gagal', res.message || 'Gagal menetapkan kata laluan baru.', 'error');
       }
@@ -4648,14 +4645,10 @@ function escapeHtmlInduk(value) {
       showCancelButton: true, confirmButtonColor: '#153f6a', cancelButtonColor: '#d33', confirmButtonText: 'Ya, Log Keluar'
     }).then((result) => {
       if (result.isConfirmed) {
-        let targetUrl = scriptUrl !== "" ? scriptUrl : "URL_APPS_SCRIPT_ANDA_DI_SINI";
-        var form = document.createElement('form');
-        form.method = "GET"; form.action = targetUrl; form.target = "_top"; 
-        var input = document.createElement('input');
-        input.type = "hidden"; input.name = "page"; input.value = "admin";
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
+        currentUser = null;
+        sessionStorage.clear();
+        localStorage.removeItem('currentUser');
+        window.location.href = "admin.html";
       }
     });
   }
@@ -4778,7 +4771,7 @@ function escapeHtmlInduk(value) {
     const tahun = document.getElementById('assessment-batch-year').value;
     if (!bil || !tahun) return;
 
-    const stage = activeBatchStage || 'induk';
+    ';
     const negeri = currentUser ? (currentUser.negeri || '') : '';
     let batchKey = '';
     if (stage === 'negeri') {
@@ -7997,7 +7990,9 @@ let monthlyTrendChartInstance = null;
 
     const stage = activeBatchStage || 'induk';
     const negeri = currentUser ? (currentUser.negeri || '') : '';
-    const baseUrl = scriptUrl !== "" ? scriptUrl : "URL_APPS_SCRIPT_ANDA";
+    
+    // Halakan terus ke fail kehadiran.html pada domain GitHub Pages semasa
+    const baseUrlKehadiran = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1) + 'kehadiran.html';
     
     if (stage === 'negeri') {
       currentQrBatchKey = `Mesyuarat Jawatan Kuasa SPeKS Negeri (${negeri}) ${bil}/ ${tahun}`;
@@ -8007,7 +8002,7 @@ let monthlyTrendChartInstance = null;
       currentQrBatchKey = `Mesyuarat Jawatan Kuasa SPeKS Induk ${bil}/ ${tahun}`;
     }
 
-    const linkBorang = `${baseUrl}?page=kehadiran&batchKey=${encodeURIComponent(currentQrBatchKey)}&stage=${encodeURIComponent(stage)}&bil=${encodeURIComponent(bil)}&tahun=${encodeURIComponent(tahun)}&negeri=${encodeURIComponent(negeri)}`;
+    const linkBorang = `${baseUrlKehadiran}?batchKey=${encodeURIComponent(currentQrBatchKey)}&stage=${encodeURIComponent(stage)}&bil=${encodeURIComponent(bil)}&tahun=${encodeURIComponent(tahun)}&negeri=${encodeURIComponent(negeri)}`;
     
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(linkBorang)}`;
 
