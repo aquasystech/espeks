@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Borang Permohonan TSAPP</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    /* ==========================================================================
+       TAMBAHAN PENTING: BOX-SIZING
+       (Ini memastikan padding tidak menyebabkan elemen terkeluar dari skrin)
+       ========================================================================== */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* ==========================================================================
+       1. GAYA MODEN & PROFESIONAL (SKRIN)
+       ========================================================================== */
+    div.swal2-popup {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 40px !important; /* Ruang seimbang atas bawah */
+        min-height: 250px !important; /* Ketinggian tetap supaya nampak center */
+    }
+    
+    /* Menghijaukan tulisan dan centerkan teks dalam SweetAlert */
+    div.swal2-title {
+        margin: 0 !important;
+        padding: 0 !important;
+        color: #ffffff !important; /* Tukar font kepada putih */
+        display: flex !important;
+        align-items: center !important; /* Centerkan secara menegak (atas-bawah) */
+        justify-content: center !important; /* Centerkan secara mendatar (kiri-kanan) */
+        text-align: center !important;
+        min-height: 60px !important; /* Beri sedikit ruang tinggi supaya nampak kesan center */
+    }
+
+    div.swal2-html-container {
+        margin-top: 10px !important;
+    }
+
+    /* Pastikan loader (pusingan) juga seimbang jaraknya */
+    div.swal2-loader {
+        border-color: #ffffff transparent #ffffff transparent !important; /* Warna pusingan putih */
+        margin: 15px auto 0 !important;
+    }
+    body { 
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        background-color: #f0f2f5; 
+        margin: 0; 
+        padding: 20px; 
+        color: #333;
+    }
+
+    .container { 
+        width: 100%; 
+        max-width: 900px; 
+        margin: 0 auto; 
+        background-color: #ffffff; 
+        padding: 50px; 
+        border-radius: 12px; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
+        border-top: 6px solid #153f6a; 
+    }
+
+    /* HEADER */
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #ccc; }
+    
+    .header img { 
+        height: 168px; 
+        width: 168px; /* [UBAH SINI] Tetapkan lebar sama dengan tinggi supaya seimbang */
+        object-fit: contain; /* Pastikan gambar tidak herot */
+    }
+    .header .title { 
+        text-align: center; 
+        flex-grow: 1; 
+        padding: 0 15px; 
+    }
+    .header .title h1 { 
+        font-size: 20px; 
+        font-weight: 700; 
+        color: #153f6a; 
+        margin: 0 0 5px 0; 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+    }
+    .header .title p { 
+        font-size: 13px; 
+        color: #555; 
+        margin: 2px 0; 
+        font-weight: 600; 
+    }
+
+    /* TAJUK BAHAGIAN */
+    h2 { 
+        background: linear-gradient(90deg, #99005c 0%, #b3006b 100%); 
+        color: white; 
+        padding: 12px 20px; 
+        border-radius: 6px; 
+        font-size: 15px; 
+        margin-top: 35px; 
+        margin-bottom: 20px; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* GAYA KHAS UNTUK SEKSYEN ULASAN PEGAWAI */
+    h3.ulasan-title { background-color: #e9ecef; color: #333; padding: 10px; font-size: 14px; border-left: 5px solid #153f6a; margin-top: 25px; text-transform: uppercase; }
+    .ulasan-box { background-color: #f8f9fa; padding: 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; }
+    .ulasan-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 5px; }
+    .ulasan-label { font-weight: bold; font-size: 13px; color: #555; width: 40%; }
+    .ulasan-value { font-weight: normal; font-size: 13px; color: #000; width: 60%; text-align: right; }
+
+    /* FORM GRID LAYOUT */
+    .grid-container { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 20px 25px; 
+    }
+    .grid-full { grid-column: 1 / -1; }
+
+    /* INPUT & LABEL */
+    fieldset { border: none; padding: 0; margin: 0; }
+    
+    label { 
+        display: block; 
+        margin-top: 5px; 
+        font-weight: 600; 
+        font-size: 13px; 
+        color: #444; 
+        margin-bottom: 6px; 
+    }
+
+    input[type="text"], 
+    input[type="email"], 
+    input[type="number"], 
+    select, 
+    textarea { 
+        width: 100%; 
+        padding: 10px 12px; 
+        border-radius: 6px; 
+        border: 1px solid #ccc; 
+        font-size: 14px; 
+        background-color: #fcfcfc;
+        transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus { 
+        border-color: #153f6a; 
+        background-color: #fff;
+        outline: none; 
+        box-shadow: 0 0 0 3px rgba(21, 63, 106, 0.1); 
+    }
+    
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* GAMBAR & FAIL */
+    #gambarPemohonPreview { 
+        border: 4px solid #fff; 
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+    }
+    .upload-box {
+        background-color: #f8f9fa;
+        border: 2px dashed #ccc;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        transition: border-color 0.3s;
+    }
+    .upload-box:hover { border-color: #99005c; }
+
+    /* BUTANG */
+    .button-container { 
+        display: flex; 
+        justify-content: flex-end; 
+        gap: 15px; 
+        margin-top: 40px; 
+        padding-top: 20px; 
+        border-top: 1px solid #eee; 
+    }
+    button { 
+        padding: 12px 25px; 
+        border: none; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        font-weight: bold; 
+        color: white; 
+        transition: transform 0.1s, opacity 0.2s; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+
+    /* BUTANG PADAM (X) - DIKEMASKINI SUPAYA CANTIK */
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: inline-flex; /* Guna flex untuk center */
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1; /* Penting untuk alignment */
+        padding: 0;
+        margin: 0 auto;
+    }
+    .btn-delete:hover { background-color: #c82333; }
+
+    /* JADUAL KURSUS */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+    th { background-color: #e9ecef; color: #333; padding: 10px; font-size: 13px; text-align: left; font-weight: 600; border-bottom: 1px solid #ddd; }
+    td { padding: 8px; border-bottom: 1px solid #eee; }
+    td input { border: 1px solid #ddd; }
+
+    /* LOADER & MESEJ */
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #99005c; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    .message { padding: 20px; margin-bottom: 20px; border-radius: 8px; text-align: center; font-weight: bold; }
+    .message.success { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+    .message.error { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+
+    /* Success Box (Hidden by default) */
+    #successBox { display: none; background-color: #d1e7dd; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px; border: 2px solid #0f5132; }
+
+    /* ==========================================================================
+       2. GAYA CETAKAN (PRINT MODE)
+       ========================================================================== */
+    @media print {
+        @page { size: A4; margin: 0.5cm; }
+        
+        body { background-color: #fff; margin: 0; padding: 0; font-size: 8.5pt; }
+        .container { width: 100%; max-width: 100%; margin: 0; padding: 10px !important; box-shadow: none; border: none; }
+        .no-print, button, .button-container, #loader, .swal2-container { display: none !important; }
+        
+        /* [DIKEMASKINI] Logo diperbesarkan 20% (72px -> 86px) */
+        .header { margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid #000; }
+        .header img { height: 86px !important; width: 86px !important; } 
+        .header .title h1 { font-size: 10pt !important; line-height: 1.1; }
+        .header .title p { 
+            font-size: 7pt !important; 
+            margin: 0 !important; 
+            color: #000 !important; 
+        }
+
+        /* Success Box Print */
+        #successBox { display: block !important; border: 1px solid #000; background: #eee !important; color: #000; padding: 10px; margin-bottom: 10px; }
+        #successBox h2 { background: none !important; color: #000 !important; margin: 0; box-shadow: none; padding: 0; }
+
+        /* Header Seksyen (Jimat Ruang) */
+        h2 { 
+            font-size: 9pt !important; padding: 4px 8px !important; 
+            margin-top: 8px !important; margin-bottom: 5px !important; 
+            background: #eee !important; color: #000 !important; border: 1px solid #999;
+        }
+        
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 15px; }
+        .grid-full { grid-column: 1 / -1; }
+        
+        /* Input jadi garis sahaja */
+        label { font-size: 8pt; margin-top: 3px; margin-bottom: 0; color: #000; }
+        input, select, textarea {
+            border: none !important; border-bottom: 1px dotted #000 !important;
+            background: transparent !important; padding: 0 !important; margin: 0 !important;
+            height: auto !important; min-height: 14px; font-size: 9pt !important;
+            font-weight: bold; color: #000 !important; box-shadow: none !important;
+            resize: none; overflow: hidden;
+        }
+        #gambarPemohonPreview { width: 80px !important; height: 100px !important; margin: 0 auto !important; border: 1px solid #000; }
+        
+        fieldset, .grid-container { page-break-inside: avoid; }
+
+        /* Gaya Print untuk Ulasan */
+        h3.ulasan-title { font-size: 9pt !important; border-left: 2px solid #000; padding: 2px; margin-top: 10px; background: #eee !important; }
+        .ulasan-box { border: 1px solid #000; padding: 5px; margin-bottom: 5px; background: transparent !important; }
+        .ulasan-row { border-bottom: 1px dotted #000; margin-bottom: 2px; }
+        .ulasan-label { font-size: 8pt; }
+        .ulasan-value { font-size: 8pt; font-weight: bold; }
+    }
+
+    /* ==========================================================================
+       3. RESPONSIVE / SMARTPHONE VIEW (DIKEMASKINI)
+       ========================================================================== */
+    @media screen and (max-width: 600px) {
+        body {
+            padding: 10px; /* Kurangkan padding body */
+        }
+
+        .container { 
+            width: 95%; /* Tetapkan lebar 95% dari skrin */
+            margin: 0 auto; /* Tengah secara horizontal */
+            padding: 20px 15px; /* Kurangkan padding dalam container */
+        }
+
+        .grid-container { 
+            grid-template-columns: 1fr; /* Jadi satu kolom */
+            gap: 15px;
+        }
+
+        .header { 
+            flex-direction: column; 
+            text-align: center; 
+        }
+        
+        .header img {
+            height: 100px; /* Kecilkan logo sikit di mobile */
+            width: auto;
+            margin-bottom: 10px;
+        }
+
+        .header .title h1 {
+            font-size: 16px;
+        }
+
+        .button-container { 
+            flex-direction: column; 
+        }
+
+        button { 
+            width: 100%; 
+            margin-bottom: 10px;
+        }
+        
+        /* Pastikan jadual boleh scroll jika terlalu lebar */
+        table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+        }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="successBox">
+        <h2 style="background:none; color:#0f5132; margin:0; padding:0; font-size: 1.5em;">PERMOHONAN BERJAYA DIHANTAR</h2>
+        <p style="font-size:1.2em; margin:10px 0;">ID PERMOHONAN: <strong id="displayID" style="color:black; font-size:1.3em;"></strong></p>
+        <p class="no-print" style="margin:0;">Sila cetak halaman ini sebagai rujukan.</p>
+    </div>
+
+    <header class="header">
+        <img src="https://github.com/usopdrahman/logbookdof/raw/19a6e33739886afb78000d3d20310ea3ae03b83e/LOGO%20JABATAN%20PERIKANAN%20MALAYSIA.png" alt="Jata Negara" onerror="this.style.display='none'">
+        <div class="title">
+            <h1>Borang Permohonan</h1>
+            <h1>Projek Transformasi Sistem Akuakultur Untuk Peningkatan Pengeluaran (TSAPP)</h1>
+            <p>TSAPP 1/26</p>
+            <p>Jabatan Perikanan Malaysia</p>
+            <p>Kementerian Pertanian dan Keterjaminan Makanan</p>
+        </div>
+        <img src="https://github.com/usopdrahman/logbookdof/blob/main/DOF%20LOGO.png?raw=true" alt="Logo DOF" onerror="this.style.display='none';">
+    </header>
+
+    <div id="message" style="display:none;"></div>
+
+    <form id="applicationForm" onsubmit="handleFormSubmit(event, false)">
+        <input type="hidden" name="draftId" id="draftId" value=""> 
+        <input type="hidden" name="kategoriBantuan" value="TSAPP">
+
+        <h2>BAHAGIAN A: BUTIR-BUTIR PEMOHON</h2>
+        
+        <fieldset class="upload-box" style="margin-bottom: 25px;">
+            <img id="gambarPemohonPreview" src="https://placehold.co/150x200/e6f0fa/333?text=Gambar+Pemohon" alt="Gambar Pemohon" style="width: 130px; height: 170px; object-fit: cover; border-radius: 6px; margin: 0 auto 15px; display:block;">
+            <div class="no-print">
+                <label for="gambarPemohon" style="cursor:pointer; color:#005c99;">📁 Muat Naik Gambar Pemohon</label>
+                <small style="color: #666; display: block; margin-bottom: 5px;">(Format: JPG/PNG. Saiz maksimum: 5MB)</small>
+                <input type="file" name="gambarPemohon" id="gambarPemohon" accept="image/*" style="display:block; margin: 0 auto;">
+            </div>
+        </fieldset>
+
+        <div class="grid-container">
+            <div>
+                <label for="kategoriProjek">Kaedah Bantuan:</label>
+                <select id="kategoriProjek" name="kategoriProjek">
+                    <option>Imbuhan Balik</option>
+                    <option>In-Kind</option>
+                </select>
+            </div>
+            <div>
+                <label for="jenisPemohon">Individu atau Syarikat/ Persatuan/ Koperasi:</label>
+                <select id="jenisPemohon" name="jenisPemohon">
+                    <option>Individu</option>
+                    <option>Syarikat/ Persatuan/ Koperasi</option>
+                </select>
+            </div>
+
+            <div class="grid-full">
+                <label for="nama">Nama Individu atau Nama Syarikat/ Persatuan/ Koperasi / Kumpulan:</label>
+                <input type="text" id="nama" name="nama" required />
+            </div>
+
+            <div class="grid-full" id="divOrangPerhubungan" style="display:none; background-color: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffeeba;">
+                <label for="orangPerhubungan" style="color: #856404;">Nama Orang Perhubungan (Wajib bagi Syarikat/Koperasi):</label>
+                <input type="text" id="orangPerhubungan" name="orangPerhubungan" placeholder="Nama penuh wakil syarikat/koperasi..." />
+            </div>
+
+            <div>
+                <label for="nokp">No Kad Pengenalan/ No Pendaftaran:</label>
+                <input type="text" id="nokp" name="nokp" required placeholder="Contoh: 880101015555" pattern="\d{12}" title="Sila masukkan 12 digit No. KP tanpa sengkang (-)"/>
+            </div>
+
+           <div>
+                <label for="telPejabat">No. Tel Pejabat:</label>
+                <input type="text" id="telPejabat" name="telPejabat" placeholder="Contoh: 03-8888 8888" />
+            </div>
+            <div>
+                <label for="telefon">No. Tel Bimbit:</label>
+                <input type="text" id="telefon" name="telefon" placeholder="Contoh: 012-345 6789" />
+            </div>
+
+            <div>
+                <label for="statusInsolvensi">Status Insolvensi:</label>
+                <select id="statusInsolvensi" name="statusInsolvensi" required>
+                    <option value="">Sila Pilih</option>
+                    <option value="Tidak Bankrap">Tidak Bankrap</option>
+                    <option value="Bankrap">Bankrap</option>
+                </select>
+            </div>
+            <div>
+                <label for="emel">Alamat e-mail (Wajib):</label>
+                <input type="email" name="emel" id="emel" required placeholder="Contoh: ali@gmail.com" />
+            </div>
+
+            <div class="grid-full">
+                <label for="alamat">Alamat Surat Menyurat:</label>
+                <textarea id="alamat" name="alamat" rows="2"></textarea>
+            </div>
+
+            <div>
+                <label for="negeri">Negeri:</label>
+                <select id="negeri" name="negeri"><option value="">Memuatkan...</option></select>
+            </div>
+            <div>
+                <label for="daerah">Daerah:</label>
+                <select id="daerah" name="daerah" disabled><option value="">Sila Pilih Negeri</option></select>
+            </div>
+
+            <div class="grid-full">
+                <label for="kategoriSasar">Kategori Kumpulan Sasar:</label>
+                <select id="kategoriSasar" name="kategoriSasar">
+                    <option>Penternak Akuakultur Air Tawar</option>
+                    <option>Penternak Akuakultur Air Marin</option>
+                    <option>Penternak Ikan Hiasan</option>
+                    <option>Penternak Benih Ikan/ Udang</option>
+                    <option>Pengusaha Industri Hiliran/ Pemprosesan Produk</option>
+                </select>
+            </div>
+        </div>
+
+        <h2>BAHAGIAN B: BUTIR-BUTIR PERUSAHAAN AKUAKULTUR</h2>
+        <div class="grid-container">
+            <div>
+                <label for="jenisPerusahaan">Jenis Perusahaan:</label>
+                <select id="jenisPerusahaan" name="jenisPerusahaan">
+                    <option>Akuakultur Air Marin</option>
+                    <option>Akuakultur Air Tawar</option>
+                    <option>Ikan Hiasan</option>
+                    <option>Tumbuhan Akuatik</option>
+                    <option>Hatceri Air Tawar</option>
+                    <option>Hatceri Air Payau</option>
+                    <option>Pengusaha Industri Hiliran IKS</option>
+                </select>
+            </div>
+            <div>
+                <label for="statusPendaftaranJabatan">Status Pendaftaran dengan Jabatan:</label>
+                <select id="statusPendaftaranJabatan" name="statusPendaftaranJabatan" required>
+                    <option value="">Sila Pilih</option>
+                    <option value="Berdaftar">Berdaftar</option>
+                    <option value="Tidak Berdaftar">Tidak Berdaftar</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="noPendaftaran">No Pendaftaran Ladang:</label>
+                <input type="text" id="noPendaftaran" name="noPendaftaran" placeholder="JPM/..." />
+            </div>
+            <div>
+                <label for="noLesen">No. Lesen SKL/ Premis Akuakultur:</label>
+                <input type="text" id="noLesen" name="noLesen" placeholder="SKL/..." />
+            </div>
+
+            <div class="grid-full">
+                <label for="alamatPerusahaan">Alamat Ladang:</label>
+                <textarea id="alamatPerusahaan" name="alamatPerusahaan" rows="2"></textarea>
+            </div>
+
+            <div>
+                <label for="negeriPerusahaan">Negeri Perusahaan:</label>
+                <select id="negeriPerusahaan" name="negeriPerusahaan"><option value="">Memuatkan...</option></select>
+            </div>
+            <div>
+                <label for="daerahPerusahaan">Daerah Perusahaan:</label>
+                <select id="daerahPerusahaan" name="daerahPerusahaan" disabled><option value="">Sila Pilih Negeri</option></select>
+            </div>
+
+            <div class="grid-full">
+                <label for="spesiesTernakan">Spesies Ternakan:</label>
+                <input type="text" id="spesiesTernakan" name="spesiesTernakan" placeholder="Contoh: Ikan Tilapia, Udang Harimau" />
+            </div>
+
+            <div class="grid-full" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px;">
+                <label style="color:#010005; font-size: 14px; margin-bottom: 15px;">
+                     Punca Modal (Sila isi nilai RM jika berkenaan):
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;"> 
+                    <div>
+                        <label for="modalSendiri" style="font-weight:normal; font-size:12px;">i. Sendiri (RM)</label>
+                        <input type="number" id="modalSendiri" name="modalSendiri" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label for="modalBank" style="font-weight:normal; font-size:12px;">ii. Pinjaman Bank (RM)</label>
+                        <input type="number" id="modalBank" name="modalBank" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label for="modalLain" style="font-weight:normal; font-size:12px;">iii. Lain-lain (RM)</label>
+                        <input type="number" id="modalLain" name="modalLain" placeholder="0.00">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="jenisBantuan">Bantuan Yang Dimohon:</label>
+                <select id="jenisBantuan" name="jenisBantuan">
+                    <option>Superintensif</option>
+                    <option>Bioflok</option>
+                    <option>Kitaran Semula Akuakultur (RAS)</option>
+                    <option>Sangkar</option>
+                    <option>Lain-Lain</option>
+                </select>
+            </div>
+            <div>
+                <label for="nilaiBantuanyangdimohon">Jumlah Bantuan Dimohon (RM):</label>
+                <input type="text" id="nilaiBantuanyangdimohon" name="nilaiBantuanyangdimohon" placeholder="Contoh: 15,000.00" />
+            </div>
+
+            <div class="grid-full">
+                <label for="bantuanLalu">Bantuan Yang Pernah Diterima:</label>
+                <textarea id="bantuanLalu" name="bantuanLalu" rows="2" placeholder="Senaraikan bantuan terdahulu (jika ada)"></textarea>
+            </div>
+            <div class="grid-full">
+                <label for="tahunPengalaman">Pengalaman Dalam Perusahaan Akuakultur. Jika ada sila nyatakan butiran dan pengalaman di ruangan di bawah:</label>
+                <textarea id="tahunPengalaman" name="tahunPengalaman" rows="4" placeholder="Contoh:&#10;1) Kolam Air Tawar, Spesies Puyu, 5-6 tahun&#10;2) Tangki Kanvas, Spesies Udang Galah, 1 tahun"></textarea>
+            </div>
+        </div>
+
+        <h2>BAHAGIAN C: BUTIR-BUTIR KEMAHIRAN DAN PENGALAMAN</h2>
+        <div class="grid-container">
+            <div class="grid-full">
+                <label for="kursus">Kursus yang Pernah Disertai:</label>
+                
+                <table id="jadualKursus">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Nama Kursus</th>
+                            <th style="width: 35%;">Penganjur</th>
+                            <th style="width: 15%;">Tahun</th>
+                            <th style="width: 5%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyKursus"></tbody>
+                </table>
+
+                <button type="button" class="no-print" onclick="tambahBarisKursus()" style="background-color: #6c757d; margin-top: 10px; padding: 8px 15px; font-size: 13px;">
+                    + Tambah Kursus
+                </button>
+            </div>
+        </div>
+
+        <h2>BAHAGIAN D: DOKUMEN SOKONGAN</h2>
+        <fieldset class="upload-box no-print">
+            <label for="failSokongan" style="cursor:pointer; color:#005c99; font-size:15px;">📁 Klik Sini Untuk Muat Naik Dokumen</label>
+            
+            <div style="background-color:#fff3cd; padding:10px; border-radius:5px; margin: 10px 0; border:1px solid #ffecb5;">
+                <small style="color: #856404; font-weight: bold; display: block; line-height: 1.5;">
+                    WAJIB MUAT NAIK:<br>
+                    (1) Salinan Kad Pengenalan<br>
+                    (2) Rancangan Perniagaan<br>
+                    (3) Salinan Geran Tanah/ Kebenaran Menggunakan Tanah/ Lesen Pendudukan Sementara<br>
+                    <br>
+                    <span style="color: #333; font-weight: normal;">* Maksimum 10 fail. Saiz < 5MB setiap satu.</span>
+                </small>
+            </div>
+            
+            <input type="file" name="failSokongan" id="failSokongan" style="display:block; margin: 10px auto;">
+            <div id="fileList" style="text-align:left; margin-top:10px; font-size:14px;"></div>
+        </fieldset>
+        
+        <div style="display:none;" class="print-only">
+            <p><i>(Dokumen sokongan telah dimuat naik secara digital dalam sistem)</i></p>
+        </div>
+
+        <h2>BAHAGIAN E: AKUAN PEMOHON</h2>
+        <fieldset>
+            <div style="background-color:#f8f9fa; padding:15px; border-radius:6px; border:1px solid #ddd;">
+                <label style="display: flex; align-items: flex-start; cursor:pointer;">
+                    <input type="checkbox" id="akuan" required style="margin-top:4px; margin-right:10px;" /> 
+                    <span>Saya mengaku bahawa maklumat-maklumat yang dikemukakan ini adalah benar. Saya akan mematuhi peraturan-peraturan yang ditetapkan oleh Jabatan Perikanan Malaysia.</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <h3 class="ulasan-title">ULASAN PEJABAT PERIKANAN DAERAH</h3>
+        <div class="ulasan-box">
+            <div class="ulasan-row">
+                <span class="ulasan-label">Status Sokongan:</span>
+                <span class="ulasan-value" id="dispPpdStatus">Tidak Disokong/Belum Diproses</span>
+            </div>
+            <div class="ulasan-row">
+                <span class="ulasan-label">Catatan PPD:</span>
+                <span class="ulasan-value" id="dispPpdCatatan">-</span>
+            </div>
+            <div class="ulasan-row">
+                <span class="ulasan-label">Tarikh:</span>
+                <span class="ulasan-value" id="dispPpdTarikh">-</span>
+            </div>
+            <div class="ulasan-row" style="border-bottom:none;">
+                <span class="ulasan-label">Disahkan oleh:</span>
+                <span class="ulasan-value" id="dispPpdOleh">-</span>
+            </div>
+        </div>
+
+        <h3 class="ulasan-title">ULASAN PEJABAT PERIKANAN NEGERI</h3>
+        <div class="ulasan-box">
+            <div class="ulasan-row">
+                <span class="ulasan-label">Status Sokongan:</span>
+                <span class="ulasan-value" id="dispPpnStatus">Tidak Disokong/Belum Diproses</span>
+            </div>
+            <div class="ulasan-row">
+                <span class="ulasan-label">Catatan PPN:</span>
+                <span class="ulasan-value" id="dispPpnCatatan">-</span>
+            </div>
+            <div class="ulasan-row">
+                <span class="ulasan-label">Tarikh:</span>
+                <span class="ulasan-value" id="dispPpnTarikh">-</span>
+            </div>
+            <div class="ulasan-row" style="border-bottom:none;">
+                <span class="ulasan-label">Disokong oleh:</span>
+                <span class="ulasan-value" id="dispPpnOleh">-</span>
+            </div>
+        </div>
+
+        <h3 class="ulasan-title">ULASAN JAWATANKUASA PEMILIHAN (HQ)</h3>
+        <div class="ulasan-box">
+            <div class="ulasan-row">
+                <span class="ulasan-label">Status Kelulusan:</span>
+                <span class="ulasan-value" id="dispHqStatus">Tidak Disokong/Belum Diproses</span>
+            </div>
+            <div class="ulasan-row">
+                <span class="ulasan-label">Catatan HQ:</span>
+                <span class="ulasan-value" id="dispHqCatatan">-</span>
+            </div>
+            <div class="ulasan-row">
+                <span class="ulasan-label">Tarikh:</span>
+                <span class="ulasan-value" id="dispHqTarikh">-</span>
+            </div>
+            <div class="ulasan-row" style="border-bottom:none;">
+                <span class="ulasan-label">Diluluskan oleh:</span>
+                <span class="ulasan-value" id="dispHqOleh">-</span>
+            </div>
+        </div>
+
+        <div class="button-container no-print">
+            <button type="button" id="saveButton" style="background-color: #f39c12; color: white; margin-right: 10px;">
+                Simpan Draf
+            </button>
+            <button type="submit" id="submitButton" style="background-color: #005c99;">
+                Hantar Permohonan
+            </button>
+        </div>
+        
+        <div id="printArea" class="no-print" style="display:none; text-align:right; margin-top:20px;">
+             <button type="button" onclick="window.print()" style="background-color: #28a745;">Cetak Borang</button>
+        </div>
+
+    </form>
+    
+    <div id="loader" style="display:none;"><div class="loader"></div><p style="text-align:center; font-weight:bold;">Sedang Memproses...</p></div>
+</div>
+
+<script>
+    let applicantFiles = [];
+    let isCurrentlySubmitting = false; // Flag untuk cegah double submission
+    let sedangProsesCarian = false; // [UBAH] Flag baru untuk halang popup 4 kali
+    // 1. INITIALIZATION
+    document.addEventListener('DOMContentLoaded', function() {
+        // PANGGILAN SERVER UNTUK SENARAI NEGERI
+        google.script.run
+            .withSuccessHandler(list => {
+                populateNegeriDropdowns(list);
+                
+                // AMBIL DATA DRAF DARI SERVER (BASE64)
+                // Kita guna try-catch untuk elakkan crash jika JSON tak valid
+                try {
+                    var rawBase64 = "<?= draftDataInitial ?>"; 
+                    if (rawBase64 && rawBase64 !== "") {
+                        // Dekod Base64 -> String -> JSON
+                        var decodedString = atob(rawBase64);
+                        var resDraf = JSON.parse(decodedString);
+                        
+                        if (resDraf && resDraf.found) {
+                            console.log("Data draf ditemui, memulakan auto-fill...");
+                            muatTurunDataDraf(resDraf);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Ralat memproses draftDataInitial:", e);
+                }
+            })
+            .withFailureHandler(err => {
+                const errorMsg = '<option value="">Gagal Muat Data</option>';
+                document.getElementById('negeri').innerHTML = errorMsg;
+                document.getElementById('negeriPerusahaan').innerHTML = errorMsg;
+                Swal.fire('Ralat', 'Gagal menyambung ke pangkalan data negeri.', 'error');
+            })
+            .dapatkanSenaraiNegeri();
+
+        // Event Listeners Dropdown
+        document.getElementById('negeri').addEventListener('change', function() { handleNegeriChange(this.value, 'daerah'); });
+        document.getElementById('negeriPerusahaan').addEventListener('change', function() { handleNegeriChange(this.value, 'daerahPerusahaan'); });
+        document.getElementById('jenisPemohon').addEventListener('change', toggleOrangPerhubungan);
+        document.getElementById('gambarPemohon').addEventListener('change', checkFileSize);
+        document.getElementById('failSokongan').addEventListener('change', handleDocUpload);
+
+        // Event Listener Carian IC (Autofill)
+        const inputIC = document.getElementById("nokp");
+        if(inputIC) { inputIC.addEventListener("blur", semakDataPenternak); }
+
+        // Tambah baris pertama jadual kursus
+        tambahBarisKursus();
+
+        // SUBMIT BORANG (Hantar Sebenar)
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+            handleFormSubmit(e, false); 
+        });
+
+        // SIMPAN DRAF
+        document.getElementById('saveButton').addEventListener('click', function(e) {
+            handleFormSubmit(e, true); 
+        });
+    });
+
+    // 2. FUNGSI UTAMA: HANDLE SUBMIT & DRAF
+    function handleFormSubmit(e, isDraf) {
+        if (e && e.preventDefault) e.preventDefault(); // SEKAT REFRESH PAGE
+
+        // JIKA SEDANG DIPROSES, JANGAN BENARKAN KLIK LAGI
+        if (isCurrentlySubmitting) return false;
+
+        const form = document.getElementById('applicationForm');
+        const nokp = form.nokp.value;
+
+        // Validasi Asas
+        if (!nokp) {
+            Swal.fire('Ralat', 'Sila masukkan No. Kad Pengenalan.', 'error');
+            return;
+        }
+        if (isDraf && (!form.nama.value || !form.emel.value)) {
+            Swal.fire('Info', 'Sila isi Nama dan E-mel untuk simpan draf.', 'info');
+            return;
+        }
+
+        // Kunci Butang & Tunjuk Loading
+        isCurrentlySubmitting = true;
+        document.getElementById('submitButton').disabled = true;
+        document.getElementById('saveButton').disabled = true;
+
+        Swal.fire({
+            title: isDraf ? 'Menyimpan Draf...' : 'Menghantar...',
+            text: 'Sila tunggu sebentar...',
+            allowOutsideClick: false,
+            background: '#99005c',
+            color: '#fff',
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        // Kumpul Data Kursus
+        let rawKursus = [];
+        document.querySelectorAll('#bodyKursus tr').forEach(function(row) {
+            let n = row.querySelector('.input-kursus').value;
+            let p = row.querySelector('.input-penganjur').value;
+            let t = row.querySelector('.input-tahun').value;
+            if(n || p || t) rawKursus.push({ nama: n, penganjur: p, tahun: t });
+        });
+        let kursusString = rawKursus.map(k => `${k.nama} - ${k.penganjur} (${k.tahun})`).join("\n");
+
+        // Punca Modal
+        let senaraiModal = [];
+        if (form.modalSendiri.value) senaraiModal.push("Sendiri: RM" + form.modalSendiri.value);
+        if (form.modalBank.value) senaraiModal.push("Bank: RM" + form.modalBank.value);
+        if (form.modalLain.value) senaraiModal.push("Lain: RM" + form.modalLain.value);
+
+        const formData = {
+            draftId: document.getElementById('draftId').value,
+            token: document.getElementById('draftId').value,
+            kategoriBantuan: "TSAPP",
+            nama: form.nama.value,
+            nokp: nokp,
+            emel: form.emel.value,
+            // PENAMBAHBAIKAN: Simpan nilai individu modal untuk kegunaan draf
+            modalSendiri: form.modalSendiri.value,
+            modalBank: form.modalBank.value,
+            modalLain: form.modalLain.value,
+            telefon: `Pejabat: ${document.getElementById('telPejabat').value || "-"} / Bimbit: ${document.getElementById('telefon').value || "-"}`,
+            statusInsolvensi: form.statusInsolvensi.value,
+            alamat: form.alamat.value,
+            negeri: form.negeri.value,
+            daerah: form.daerah.value,
+            kategoriProjek: form.kategoriProjek.value,
+            jenisPemohon: form.jenisPemohon.value,
+            orangPerhubungan: form.orangPerhubungan.value,
+            kategoriSasar: form.kategoriSasar.value,
+            jenisPerusahaan: form.jenisPerusahaan.value,
+            statusPendaftaranJabatan: form.statusPendaftaranJabatan.value,
+            noPendaftaran: form.noPendaftaran.value,
+            noLesen: form.noLesen.value,
+            alamatPerusahaan: form.alamatPerusahaan.value,
+            negeriPerusahaan: form.negeriPerusahaan.value,
+            daerahPerusahaan: form.daerahPerusahaan.value,
+            spesiesTernakan: form.spesiesTernakan.value,
+            puncaModal: senaraiModal.join(", "),
+            jenisBantuan: form.jenisBantuan.value,
+            nilaiBantuanyangdimohon: form.nilaiBantuanyangdimohon.value,
+            bantuanLalu: form.bantuanLalu.value,
+            tahunPengalaman: form.tahunPengalaman.value,
+            kursus: kursusString,
+            rawKursus: rawKursus,
+            files: []
+        };
+
+        // Proses Fail (Base64)
+        const allFiles = [];
+        if (form.gambarPemohon.files[0]) allFiles.push({ f: form.gambarPemohon.files[0], n: '[FOTO] ' + form.gambarPemohon.files[0].name });
+        applicantFiles.forEach(f => allFiles.push({ f: f, n: f.name }));
+
+        if (allFiles.length > 0) {
+            let processed = 0;
+            document.getElementById('uploadProgressOverlay').style.display = 'flex';
+            
+            allFiles.forEach((item) => {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    formData.files.push({ name: item.n, data: ev.target.result });
+                    processed++;
+                    let percentage = Math.round((processed / allFiles.length) * 100);
+                    document.getElementById('progressBar').style.width = percentage + "%";
+                    document.getElementById('progressDetail').innerText = `Memproses fail ${processed}/${allFiles.length}...`;
+
+                    if (processed === allFiles.length) {
+                        hantarKeServer(formData, isDraf);
+                    }
+                };
+                reader.readAsDataURL(item.f);
+            });
+        } else {
+            hantarKeServer(formData, isDraf);
+        }
+    }
+
+    function hantarKeServer(data, isDraf) {
+    google.script.run
+        .withSuccessHandler(function(res) {
+            document.getElementById('uploadProgressOverlay').style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
+            
+            if(res.success) {
+                if (res.mode === "DRAF") {
+                    document.getElementById('draftId').value = res.draftId; 
+                    Swal.fire({ icon:'success', title:'Draf Disimpan!', background: '#99005c', color: '#fff' });
+                    isCurrentlySubmitting = false;
+                    document.getElementById('submitButton').disabled = false;
+                    document.getElementById('saveButton').disabled = false;
+                } else {
+                    paparKejayaan(res.message);
+                }
+            } else {
+                // JIKA NO KP SUDAH WUJUD DALAM DATABASE
+                if (res.status === "ALREADY_EXISTS") {
+                    Swal.fire({
+                        title: 'Permohonan Gagal!',
+                        text: res.message,
+                        icon: 'warning',
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: '❌ Batal & Mohon Baru',
+                        cancelButtonText: 'Tutup',
+                        confirmButtonColor: '#dc3545',
+                        denyButtonColor: '#005c99'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Proses Batal & Reset
+                            google.script.run.withSuccessHandler(() => {
+                                document.getElementById('applicationForm').reset();
+                                Swal.fire('Rekod Lama Dibatalkan', 'Sila isi borang baru.', 'success');
+                                isCurrentlySubmitting = false;
+                                document.getElementById('submitButton').disabled = false;
+                                document.getElementById('saveButton').disabled = false;
+                            }).prosesBatalPermohonanLama(data.nokp);
+                        } else if (result.isDenied) {
+                            window.location.href = google.script.run.getUrl() + "?page=status";
+                        } else {
+                            isCurrentlySubmitting = false;
+                            document.getElementById('submitButton').disabled = false;
+                            document.getElementById('saveButton').disabled = false;
+                        }
+                    });
+                } else {
+                    onFailure({message: res.message});
+                }
+            }
+        })
+        .withFailureHandler(onFailure)
+        .prosesPermohonan(data, isDraf);
+    }
+
+    // 3. UI HELPERS (Kekalkan fungsi sedia ada anda)
+    function paparKejayaan(msg) {
+        if(typeof Swal !== 'undefined') Swal.close();
+        let idPermohonan = "BERJAYA";
+        isCurrentlySubmitting = false;
+        const match = msg.match(/(SPEKS|TSAPP|DOF)-\d{4}-\d+/);
+        if(match) idPermohonan = match[0];
+        document.getElementById('successBox').style.display = 'block';
+        document.getElementById('displayID').innerText = idPermohonan;
+        document.querySelector('.button-container').style.display = 'none';
+        document.getElementById('printArea').style.display = 'block';
+        const inputs = document.querySelectorAll('input, select, textarea, button');
+        inputs.forEach(el => {
+            if(!el.closest('#printArea')) {
+                el.disabled = true;
+                if(el.tagName !== 'BUTTON') {
+                    el.style.border = 'none';
+                    el.style.borderBottom = '1px solid #ccc';
+                    el.style.background = 'transparent';
+                    el.style.color = '#000';
+                }
+            }
+        });
+        window.scrollTo(0,0);
+    }
+
+    function toggleOrangPerhubungan() {
+        const val = document.getElementById('jenisPemohon').value;
+        const div = document.getElementById('divOrangPerhubungan');
+        const input = document.getElementById('orangPerhubungan');
+        if (val === 'Syarikat/ Persatuan/ Koperasi') {
+            div.style.display = 'block';
+            input.required = true;
+        } else {
+            div.style.display = 'none';
+            input.required = false;
+            input.value = '';
+        }
+    }
+
+    function populateNegeriDropdowns(list) {
+        const h = '<option value="">Pilih Negeri</option>' + list.map(n=>`<option>${n}</option>`).join('');
+        document.getElementById('negeri').innerHTML = h;
+        document.getElementById('negeriPerusahaan').innerHTML = h;
+    }
+
+    function handleNegeriChange(val, idDaerah, valTarget = null) {
+        const el = document.getElementById(idDaerah);
+        if (!val) { el.innerHTML = '<option value="">Sila Pilih Negeri</option>'; el.disabled = true; return; }
+        el.innerHTML = '<option value="">Memuatkan...</option>';
+        google.script.run
+            .withSuccessHandler(list => {
+                el.innerHTML = '<option value="">Pilih Daerah</option>' + list.map(d=>`<option>${d}</option>`).join('');
+                el.disabled = false;
+                if(valTarget) el.value = valTarget;
+            })
+            .dapatkanSenaraiDaerah(val);
+    }
+
+    function semakDataPenternak() {
+        // 1. Jika tengah proses, jangan buat apa-apa
+        if (sedangProsesCarian) return;
+
+        const inputKP = document.getElementById('nokp');
+        const icValue = inputKP.value.trim();
+
+        // 2. Hanya proses jika IC cukup 12 digit
+        if (icValue.replace(/[^0-9]/g, "").length >= 12) {
+            
+            sedangProsesCarian = true; // Kunci proses
+
+            Swal.fire({
+                title: 'Menyemak Rekod...',
+                allowOutsideClick: false,
+                background: '#153f6a',
+                color: '#fff',
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    Swal.close();
+                    sedangProsesCarian = false; // Buka kunci semula
+
+                    if (res && res.found) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Penternak Ditemui',
+                            text: 'Maklumat profil anda sedang diisi...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        // [UBAH] Gunakan fungsi muatTurunDataDraf untuk isi borang
+                        muatTurunDataDraf(res.data); 
+                    }
+                })
+                .withFailureHandler(() => {
+                    sedangProsesCarian = false;
+                    Swal.close();
+                    console.error("Ralat server:", err);
+                })
+                .cariDataPenternak(icValue);
+        }
+    }
+
+    function checkFileSize(e) {
+        if(e.target.files[0] && e.target.files[0].size > 2*1024*1024) {
+            alert("Gambar terlalu besar (>2MB)"); e.target.value = "";
+            document.getElementById('gambarPemohonPreview').src = "https://placehold.co/150x200/e6f0fa/333?text=FOTO";
+        } else if (e.target.files[0]) {
+            const r = new FileReader();
+            r.onload = (ev) => document.getElementById('gambarPemohonPreview').src = ev.target.result;
+            r.readAsDataURL(e.target.files[0]);
+        }
+    }
+
+    function handleDocUpload(e) {
+        if(applicantFiles.length >= 10) { alert("Maksimum 10 fail."); e.target.value=""; return; }
+        const f = e.target.files[0];
+        if(f) {
+            if(f.size > 5*1024*1024) { alert("Fail melebihi 5MB"); e.target.value=""; return; }
+            applicantFiles.push(f);
+            renderFileList();
+        }
+        e.target.value = "";
+    }
+
+    function renderFileList() {
+        document.getElementById('fileList').innerHTML = applicantFiles.map((f,i) => 
+            `<div style="margin-bottom:5px;">📄 ${f.name} <span onclick="applicantFiles.splice(${i},1);renderFileList()" style="color:red;cursor:pointer;font-weight:bold;margin-left:10px;">[Hapus]</span></div>`
+        ).join('');
+    }
+
+    function tambahBarisKursus(n='', p='', t='') {
+        var tbody = document.getElementById('bodyKursus');
+        var row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" class="input-kursus" value="${n}" placeholder="Nama Kursus" style="width:100%;border:none;"></td>
+            <td><input type="text" class="input-penganjur" value="${p}" placeholder="Penganjur" style="width:100%;border:none;"></td>
+            <td><input type="number" class="input-tahun" value="${t}" placeholder="20XX" style="width:100%;border:none;"></td>
+            <td style="text-align:center;"><button type="button" class="btn-delete" onclick="this.closest('tr').remove()">x</button></td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    function onFailure(err) {
+        isCurrentlySubmitting = false;
+        Swal.fire('Ralat', 'Gagal: ' + (err.message || err), 'error');
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('submitButton').disabled = false;
+        document.getElementById('saveButton').disabled = false;
+    }
+
+    function muatTurunDataDraf(dataObj) {
+        // [UBAH] Sokongan untuk kedua-dua format data (Nested dari server atau Direct dari pencarian IC)
+        const data = dataObj.data ? dataObj.data : dataObj;
+        if (!data) return;
+
+        // [UBAH] Peta Mapping supaya Header Sheet yang ada jarak/huruf besar boleh masuk ke ID HTML
+        const petaMapping = {
+            "Nama Pemohon": "nama",
+            "No Kad Pengenalan": "nokp",
+            "Alamat Surat Menyurat": "alamat",
+            "Negeri": "negeri",
+            "Daerah": "daerah",
+            "No Telefon": "telefon",
+            "Status Insolvensi": "statusInsolvensi",
+            "Emel": "emel",
+            "Kategori Kumpulan Sasar": "kategoriSasar",
+            "Nama Orang Perhubungan": "orangPerhubungan",
+            "Sebab Bantuan (SPEKS) / Status Pendaftaran (TSAPP)": "statusPendaftaranJabatan",
+            "No Pendaftaran Nelayan / Ladang": "noPendaftaran",
+            "No. Lesen SKL/ Premis Akuakultur": "noLesen",
+            "Punca Modal": "Punca Modal", // Ini diproses khas di bawah
+            "Jenis Perusahaan": "jenisPerusahaan",
+            "Alamat Perusahaan": "alamatPerusahaan",
+            "Negeri Perusahaan": "negeriPerusahaan",
+            "Daerah Perusahaan": "daerahPerusahaan",
+            "Spesies Ternakan": "spesiesTernakan",
+            "Jenis Bantuan Yang Dimohon": "jenisBantuan",
+            "Nilai Bantuan Yang Dimohon (RM)": "nilaiBantuanyangdimohon",
+            "Bantuan Yang Pernah Diterima": "bantuanLalu",
+            "Tahun Pengalaman": "tahunPengalaman",
+            "Kursus Yang Pernah Disertai": "kursus"
+        };
+
+        // Fungsi pembantu safeSet asal anda (Sangat bagus untuk kekalkan)
+        const safeSet = (id, val) => { 
+            const el = document.getElementById(id); 
+            if (el && val !== undefined && val !== null) {
+                el.value = val; 
+                el.dispatchEvent(new Event('change')); // Trigger supaya dropdown/logik lain berjalan
+            }
+        };
+
+        // 1. Simpan ID untuk mod pindaan
+        if (data['ID Permohonan']) {
+            document.getElementById('draftId').value = data['ID Permohonan'];
+        }
+
+        // 2. [UBAH] Loop pengisian data menggunakan Peta Mapping & safeSet
+        for (let header in data) {
+            let fieldId = petaMapping[header] ? petaMapping[header] : header;
+            // Kita guna loop untuk data yang ringkas
+            if (typeof data[header] !== 'object') {
+                safeSet(fieldId, data[header]);
+            }
+        }
+
+        // 3. KEKALKAN: Logik pengisian data spesifik yang tiada dalam kod cadangan baru anda
+        // Pengisian Punca Modal
+        if (data["Punca Modal"]) {
+            const strModal = data["Punca Modal"];
+            
+            // Fungsi untuk ambil nilai RM menggunakan Regex
+            const extractRM = (key, str) => {
+                const regex = new RegExp(key + ": RM\\s*([\\d.]+)");
+                const match = String(str).match(regex);
+                return match ? match[1] : "";
+            };
+
+            safeSet('modalSendiri', extractRM("Sendiri", strModal));
+            safeSet('modalBank', extractRM("Bank", strModal));
+            safeSet('modalLain', extractRM("Lain", strModal));
+        }
+
+        // Pengisian Jadual Kursus
+        if (data.rawKursus && data.rawKursus.length > 0) {
+            document.getElementById('bodyKursus').innerHTML = '';
+            data.rawKursus.forEach(k => tambahBarisKursus(k.nama, k.penganjur, k.tahun));
+        }
+
+        // Gambar Draf
+        if (data.gambarDrafData) document.getElementById('gambarPemohonPreview').src = data.gambarDrafData;
+
+        // Fail Sedia Ada (Untuk Pindaan)
+        if (data.existingFiles && data.existingFiles.length > 0) {
+            let html = '<p style="font-weight:bold; color:green; margin-top:10px;">Fail sedia ada:</p>';
+            data.existingFiles.forEach(file => {
+                if (!file.name.includes("[FOTO]")) html += `<div>✅ <a href="${file.url}" target="_blank">${file.name}</a></div>`;
+            });
+            document.getElementById('fileList').innerHTML = html;
+        }
+
+        // 4. [UBAH] Logik pecah telefon (Pejabat/Bimbit) yang lebih mantap
+        if (data.telefon && String(data.telefon).includes("Pejabat:")) {
+            let parts = data.telefon.split(" / Bimbit: ");
+            safeSet('telPejabat', parts[0].replace("Pejabat: ", "").replace("-", ""));
+            safeSet('telefon', parts[1] || "");
+        }
+
+        // 5. [UBAH] Trigger loading Daerah selepas Negeri diisi
+        if (data["Negeri"]) handleNegeriChange(data["Negeri"], 'daerah', data["Daerah"]);
+        if (data["Negeri Perusahaan"]) handleNegeriChange(data["Negeri Perusahaan"], 'daerahPerusahaan', data["Daerah Perusahaan"]);
+
+            toggleOrangPerhubungan();
+            if (typeof paparUlasanPegawai === 'function') paparUlasanPegawai(data);
+        }
+
+    function checkExistingIC(nokp) {
+        Swal.fire({ title: 'Menyemak No. KP...', background: '#99005c', color: '#fff', didOpen: () => Swal.showLoading() });
+        google.script.run.withSuccessHandler(function(res) {
+            Swal.close();
+            if (res.status === "Wujud_Permohonan") {
+                Swal.fire({
+                    title: 'Permohonan Sedia Ada!',
+                    html: `No. KP <b>${nokp}</b> sudah wujud.<br><br>Pilih tindakan:`,
+                    icon: 'warning',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: '🔍 Papar',
+                    denyButtonText: '❌ Batal & Baru',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        google.script.run.withSuccessHandler(d => muatTurunDataDraf(d)).ambilDataDariPermohonan(nokp);
+                    } else if (result.isDenied) {
+                        google.script.run.withSuccessHandler(() => { form.reset(); Swal.fire('Dibatalkan', '', 'success'); }).prosesBatalPermohonanLama(nokp);
+                    }
+                });
+            } else if (res.status === "First_Timer_Berdaftar") {
+                muatTurunDataDraf(res.data);
+            }
+        }).semakStatusIC(nokp);
+    }
+</script>
+
+    <div id="uploadProgressOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; flex-direction:column; justify-content:center; align-items:center; color:white; font-family: sans-serif;">
+        <div class="loader" style="border-top: 4px solid #f39c12; width: 60px; height: 60px;"></div>
+        <div style="margin-top:20px; text-align:center; width: 80%; max-width: 400px;">
+            <h3 id="progressStatus" style="margin-bottom: 10px; font-size: 18px;">Memproses Dokumen...</h3>
+            <div style="width:100%; background:#444; height:12px; border-radius:10px; overflow:hidden; border: 1px solid #666;">
+                <div id="progressBar" style="width:0%; background: linear-gradient(90deg, #f39c12, #e67e22); height:100%; transition:width 0.3s ease;"></div>
+            </div>
+            <p id="progressDetail" style="margin-top:10px; font-size: 14px; color: #ccc;">Sila tunggu sebentar...</p>
+        </div>
+    </div>
+
+</body>
+</html>
