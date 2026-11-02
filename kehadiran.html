@@ -105,39 +105,94 @@
 </div>
 
 <script>
+  // 1. Baca maklumat mesyuarat terus daripada URL pelayar (hasil imbasan QR)
+  const urlParams = new URLSearchParams(window.location.search);
   let meetingParams = {
-    batchKey: "<?= batchKey ?>",
-    stage: "<?= peringkat ?>",
-    bil: "<?= bil ?>",
-    tahun: "<?= tahun ?>",
-    negeri: "<?= negeri ?>"
+    batchKey: urlParams.get('batchKey') || urlParams.get('batch') || "",
+    stage: urlParams.get('stage') || urlParams.get('peringkat') || "",
+    bil: urlParams.get('bil') || urlParams.get('bilNumber') || "",
+    tahun: urlParams.get('tahun') || urlParams.get('tahunMesyuarat') || "",
+    negeri: urlParams.get('negeri') || ""
   };
 
-  // PETA NEGERI & DAERAH DISUNTIK DARI PELAYAN
-  let petaNegeriDaerah = {};
-  try {
-    petaNegeriDaerah = JSON.parse('<?= petaNegeriDaerahJson ?>');
-  } catch (e) {
-    petaNegeriDaerah = {};
+  // Fallback sekiranya batchKey belum dibina secara penuh
+  if (!meetingParams.batchKey && meetingParams.bil && meetingParams.tahun) {
+    const stageTitle = meetingParams.stage === 'negeri' ? `Jawatan Kuasa SPeKS Negeri (${meetingParams.negeri})` :
+                       meetingParams.stage === 'pra' ? 'Jawatan Kuasa Pra SPeKS' : 'Jawatan Kuasa SPeKS Induk';
+    meetingParams.batchKey = `Mesyuarat ${stageTitle} ${meetingParams.bil}/ ${meetingParams.tahun}`;
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    // 1. Papar Tajuk Mesyuarat Rasmi Piawai
-    const tajukMesyuarat = meetingParams.batchKey || 'Pendaftaran Kehadiran Mesyuarat SPeKS';
+  // 2. Peta Negeri & Daerah terbina (Segera dimuatkan tanpa lengah masa)
+  let petaNegeriDaerah = {
+    "Ibu Pejabat (HQ)": [
+      "Ibu Pejabat Putrajaya", "Bahagian Akuakultur", "Bahagian Dasar dan Perancangan Strategik",
+      "Bahagian Biosekuriti Perikanan", "Bahagian Konservasi dan Perlindungan Perikanan",
+      "Bahagian Sumber Perikanan Tangkapan", "Lain-lain Bahagian Ibu Pejabat"
+    ],
+    "Johor": ["Batu Pahat", "Johor Bahru", "Kluang", "Kota Tinggi", "Kulai", "Mersing", "Muar", "Pontian", "Segamat", "Tangkak"],
+    "Kedah": ["Baling", "Bandar Baharu", "Kota Setar", "Kuala Muda", "Kubang Pasu", "Kulim", "Langkawi", "Padang Terap", "Pendang", "Pokok Sena", "Sik", "Yan"],
+    "Kelantan": ["Bachok", "Gua Musang", "Jeli", "Kota Bharu", "Kuala Krai", "Machang", "Pasir Mas", "Pasir Puteh", "Tanah Merah", "Tumpat"],
+    "Melaka": ["Alor Gajah", "Jasin", "Melaka Tengah"],
+    "Negeri Sembilan": ["Jelebu", "Jempol", "Kuala Pilah", "Port Dickson", "Rembau", "Seremban", "Tampin"],
+    "Pahang": ["Bentong", "Bera", "Cameron Highlands", "Jerantut", "Kuantan", "Lipis", "Maran", "Pekan", "Raub", "Rompin", "Temerloh"],
+    "Perak": ["Bagan Datuk", "Batang Padang", "Hilir Perak", "Hulu Perak", "Kampar", "Kerian", "Kinta", "Kuala Kangsar", "Larut, Matang dan Selama", "Manjung", "Muallim", "Perak Tengah"],
+    "Perlis": ["Kangar"],
+    "Pulau Pinang": ["Barat Daya", "Seberang Perai Selatan", "Seberang Perai Tengah", "Seberang Perai Utara", "Timur Laut"],
+    "Sabah": ["Beaufort", "Keningau", "Kinabatangan", "Kota Belud", "Kota Kinabalu", "Kota Marudu", "Kuala Penyu", "Kudat", "Lahad Datu", "Papar", "Penampang", "Ranau", "Sandakan", "Semporna", "Sipitang", "Tawau", "Tuaran"],
+    "Sarawak": ["Betong", "Bintulu", "Kapit", "Kuching", "Limbang", "Miri", "Mukah", "Samarahan", "Sarikei", "Serian", "Sibu", "Sri Aman"],
+    "Selangor": ["Gombak", "Hulu Langat", "Hulu Selangor", "Klang", "Kuala Langat", "Kuala Selangor", "Petaling", "Sabak Bernam", "Sepang"],
+    "Terengganu": ["Besut", "Dungun", "Hulu Terengganu", "Kemaman", "Kuala Nerus", "Kuala Terengganu", "Marang", "Setiu"],
+    "W.P. Kuala Lumpur": ["Kuala Lumpur"],
+    "W.P. Labuan": ["Labuan"],
+    "W.P. Putrajaya": ["Putrajaya"]
+  };
 
-    document.getElementById('display-mesyuarat-title').innerHTML = `<i class="bi bi-calendar-event me-1 text-primary"></i> ${tajukMesyuarat}`;
-    document.getElementById('display-mesyuarat-sub').innerText = `Sila lengkapkan butiran kehadiran dan akuan Integrity Pact di bawah.`;
-
-    // 2. Muat Senarai Negeri Bertugas
+  function isiDropdownNegeri() {
     const selNegeri = document.getElementById('negeriBertugas');
-    const senaraiNegeri = Object.keys(petaNegeriDaerah);
+    if (!selNegeri) return;
+    const curVal = selNegeri.value;
+    selNegeri.innerHTML = '<option value="">-- Pilih Negeri --</option>';
 
-    senaraiNegeri.forEach(neg => {
+    Object.keys(petaNegeriDaerah).forEach(neg => {
       const opt = document.createElement('option');
       opt.value = neg;
       opt.textContent = neg;
       selNegeri.appendChild(opt);
     });
+
+    if (curVal && petaNegeriDaerah[curVal]) {
+      selNegeri.value = curVal;
+    }
+  }
+
+  // Kemas kini peta secara dinamik jika terdapat tab 'Senarai Daerah & Negeri' khas di Google Sheet
+  function muatPetaNegeriDaerahDariServer() {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && typeof res === 'object' && Object.keys(res).length > 0) {
+            petaNegeriDaerah = res;
+            isiDropdownNegeri();
+          }
+        })
+        .withFailureHandler(err => {
+          console.warn("Menggunakan senarai rujukan peta lalai:", err);
+        })
+        .dapatkanPetaNegeriDaerah();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // 1. Papar Tajuk Mesyuarat Rasmi daripada URL
+    const tajukMesyuarat = meetingParams.batchKey || 'Pendaftaran Kehadiran Mesyuarat SPeKS';
+    document.getElementById('display-mesyuarat-title').innerHTML = `<i class="bi bi-calendar-event me-1 text-primary"></i> ${tajukMesyuarat}`;
+    document.getElementById('display-mesyuarat-sub').innerText = `Sila lengkapkan butiran kehadiran dan akuan Integrity Pact di bawah.`;
+
+    // 2. Isi Dropdown Negeri serta-merta
+    isiDropdownNegeri();
+
+    // 3. Semak kemas kini data daerah dari Google Sheet di sebalik tabir
+    muatPetaNegeriDaerahDariServer();
   });
 
   // Logik Tukar Negeri -> Muat Daerah Berkaitan
