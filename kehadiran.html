@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pendaftaran Kehadiran Mesyuarat SPeKS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { background-color: #f4f7f9; font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; padding: 15px 10px; }
+    .attendance-card { max-width: 650px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 25px 20px; border: 1px solid #e9ecef; }
+    .header-banner { background: linear-gradient(135deg, #153f6a 0%, #005c99 100%); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
+    .header-banner img { height: 60px; margin-bottom: 10px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2)); }
+    .integrity-box { background: #fffdf5; border: 1px solid #ffeeba; border-radius: 10px; padding: 18px; font-size: 0.85rem; line-height: 1.6; color: #333; margin-bottom: 20px; }
+    .integrity-box h6 { color: #856404; font-weight: 800; font-size: 0.95rem; }
+    .integrity-highlight { font-weight: 700; color: #153f6a; background: #e8f4fd; padding: 2px 6px; border-radius: 4px; }
+    .form-label { font-weight: 700; font-size: 0.82rem; color: #495057; margin-bottom: 4px; }
+    .form-control { font-size: 0.9rem; padding: 10px 12px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="attendance-card">
+  <!-- HEADER BANNER -->
+  <div class="header-banner">
+    <img src="https://raw.githubusercontent.com/usopdrahman/logbookdof/main/LOGO%20JABATAN%20PERIKANAN%20MALAYSIA.png" alt="DOF Logo">
+    <h5 class="fw-bold mb-1">Pendaftaran Kehadiran Mesyuarat</h5>
+    <p class="small text-white-50 mb-0">Sistem Penyampaian Khidmat Sokongan Akuakultur (SPeKS)</p>
+  </div>
+
+  <!-- MAKLUMAT MESYUARAT (AUTO-POPULATE DARI URL) -->
+  <div class="alert alert-primary py-2 px-3 mb-3 border-0 shadow-sm" style="font-size:0.85rem;">
+    <div class="fw-bold fs-6" id="display-mesyuarat-title"><i class="bi bi-calendar-event me-1"></i> Memuatkan Maklumat Mesyuarat...</div>
+    <div class="small text-secondary mt-1" id="display-mesyuarat-sub">Sila tunggu sebentar.</div>
+  </div>
+
+  <form id="formKehadiran" onsubmit="hantarKehadiran(event)">
+    <!-- BUTIRAN AHLI MESYUARAT -->
+    <div class="row g-2 mb-3">
+      <div class="col-12">
+        <label class="form-label">Nama Penuh <span class="text-danger">*</span></label>
+        <input type="text" id="namaAhli" class="form-control" placeholder="Contoh: AHMAD BIN ABDULLAH" required oninput="kemaskiniTeksIntegrity()">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">No. Kad Pengenalan <span class="text-danger">*</span></label>
+        <input type="text" id="noKp" class="form-control" placeholder="Contoh: 850101015555" required oninput="kemaskiniTeksIntegrity()">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Alamat E-mel (Untuk Minit Mesyuarat) <span class="text-danger">*</span></label>
+        <input type="email" id="emelAhli" class="form-control" placeholder="Contoh: ahmad@dof.gov.my" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">No. Telefon Bimbit <span class="text-danger">*</span></label>
+        <input type="tel" id="noTel" class="form-control" placeholder="Contoh: 0123456789" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Jawatan <span class="text-danger">*</span></label>
+        <input type="text" id="jawatan" class="form-control" placeholder="Contoh: Pegawai Perikanan" required>
+      </div>
+
+      <!-- DROPDOWN BERANGKAI: NEGERI & DAERAH BERTUGAS -->
+      <div class="col-md-6">
+        <label class="form-label">Negeri Bertugas <span class="text-danger">*</span></label>
+        <select id="negeriBertugas" class="form-select" required onchange="tukarNegeriBertugas()">
+          <option value="">-- Pilih Negeri --</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Daerah Bertugas <span class="text-danger">*</span></label>
+        <select id="daerahBertugas" class="form-select" required onchange="kemaskiniTeksIntegrity()" disabled>
+          <option value="">-- Pilih Negeri Dahulu --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TEKS RASMI INTEGRITY PACT (TELAH DISELARASKAN PENEMPATAN) -->
+    <div class="integrity-box">
+      <h6 class="text-center mb-3"><i class="bi bi-shield-check me-1"></i> SURAT AKUAN INTEGRITY PACT</h6>
+      <p class="mb-3">
+        Saya, <span class="integrity-highlight" id="previewNama">[Nama Ahli]</span> No. Kad Pengenalan <span class="integrity-highlight" id="previewKp">[No. KP]</span> yang bertugas di <span class="integrity-highlight" id="previewPenempatan">[Daerah / Negeri Bertugas]</span> adalah dengan sesungguhnya dan sebenarnya mengisytiharkan bahawa :
+      </p>
+      <ol type="i" class="ps-3 mb-0">
+        <li class="mb-2">Saya telah melaksanakan tugas sebagai Ahli Mesyuarat Jawatankuasa Sistem Penyampaian & Khidmat Sokongan Akuakultur (SPeKS) tanpa mempunyai apa-apa kepentingan peribadi atau kepentingan terletak hak atau dipengaruhi oleh mana-mana pihak lain atau terlibat dalam apa-apa amalan rasuah atau ganjaran seperti ditafsirkan di bawah Akta Suruhanjaya Pencegahan Rasuah 2009 [Akta 694];</li>
+        <li class="mb-2">Tiada mana-mana ahli keluarga atau saudara terdekat saya yang mempunyai apa-apa kepentingan dalam mana-mana urusan perolehan yang dikendalikan oleh saya;</li>
+        <li class="mb-2">Saya tidak akan mendedahkan apa-apa maklumat sulit berkaitan perolehan ini kepada mana-mana pihak selaras dengan Akta Rahsia Rasmi 1972 [Akta 88]; dan</li>
+        <li class="mb-0">Saya sesungguhnya faham bahawa jika saya disabitkan kerana telah melanggar mana-mana terma/klausa surat akuan ini, saya boleh dikenakan tindakan di bawah Peraturan-peraturan Pegawai Awam (Kelakuan & Tatatertib) 1993.</li>
+      </ol>
+    </div>
+
+    <!-- PETAK SEMAKAN AKUAN -->
+    <div class="form-check mb-4">
+      <input class="form-check-input" type="checkbox" value="SETUJU" id="chkIntegrity" required style="width: 20px; height: 20px; accent-color: #153f6a;">
+      <label class="form-check-label ms-2 small fw-bold text-dark" for="chkIntegrity">
+        Saya membaca, memahami dan bersetuju dengan kesemua terma Surat Akuan Integrity Pact di atas. <span class="text-danger">*</span>
+      </label>
+    </div>
+
+    <!-- BUTANG HANTAR -->
+    <button type="submit" id="btnHantar" class="btn btn-primary w-100 py-2.5 fw-bold rounded-pill shadow-sm">
+      <i class="bi bi-check-circle-fill me-1"></i> HANTAR KEHADIRAN
+    </button>
+  </form>
+</div>
+
+<script>
+  let meetingParams = {
+    batchKey: "<?= batchKey ?>",
+    stage: "<?= peringkat ?>",
+    bil: "<?= bil ?>",
+    tahun: "<?= tahun ?>",
+    negeri: "<?= negeri ?>"
+  };
+
+  // PETA NEGERI & DAERAH DISUNTIK DARI PELAYAN
+  let petaNegeriDaerah = {};
+  try {
+    petaNegeriDaerah = JSON.parse('<?= petaNegeriDaerahJson ?>');
+  } catch (e) {
+    petaNegeriDaerah = {};
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // 1. Papar Tajuk Mesyuarat Rasmi Piawai
+    const tajukMesyuarat = meetingParams.batchKey || 'Pendaftaran Kehadiran Mesyuarat SPeKS';
+
+    document.getElementById('display-mesyuarat-title').innerHTML = `<i class="bi bi-calendar-event me-1 text-primary"></i> ${tajukMesyuarat}`;
+    document.getElementById('display-mesyuarat-sub').innerText = `Sila lengkapkan butiran kehadiran dan akuan Integrity Pact di bawah.`;
+
+    // 2. Muat Senarai Negeri Bertugas
+    const selNegeri = document.getElementById('negeriBertugas');
+    const senaraiNegeri = Object.keys(petaNegeriDaerah);
+
+    senaraiNegeri.forEach(neg => {
+      const opt = document.createElement('option');
+      opt.value = neg;
+      opt.textContent = neg;
+      selNegeri.appendChild(opt);
+    });
+  });
+
+  // Logik Tukar Negeri -> Muat Daerah Berkaitan
+  function tukarNegeriBertugas() {
+    const selNegeri = document.getElementById('negeriBertugas');
+    const selDaerah = document.getElementById('daerahBertugas');
+    const negeriPilihan = selNegeri.value;
+
+    selDaerah.innerHTML = '<option value="">-- Pilih Daerah --</option>';
+
+    if (negeriPilihan && petaNegeriDaerah[negeriPilihan]) {
+      selDaerah.disabled = false;
+      const senaraiDaerah = petaNegeriDaerah[negeriPilihan];
+
+      senaraiDaerah.forEach(dae => {
+        const opt = document.createElement('option');
+        opt.value = dae;
+        opt.textContent = dae;
+        selDaerah.appendChild(opt);
+      });
+    } else {
+      selDaerah.disabled = true;
+      selDaerah.innerHTML = '<option value="">-- Pilih Negeri Dahulu --</option>';
+    }
+
+    kemaskiniTeksIntegrity();
+  }
+
+  function kemaskiniTeksIntegrity() {
+    const nama = document.getElementById('namaAhli').value.trim() || '[Nama Ahli]';
+    const kp = document.getElementById('noKp').value.trim() || '[No. KP]';
+    const negeri = document.getElementById('negeriBertugas').value || '';
+    const daerah = document.getElementById('daerahBertugas').value || '';
+
+    let penempatanTeks = '[Daerah / Negeri Bertugas]';
+    if (negeri && daerah) {
+      penempatanTeks = `${daerah}, ${negeri}`;
+    } else if (negeri) {
+      penempatanTeks = negeri;
+    }
+
+    document.getElementById('previewNama').innerText = nama.toUpperCase();
+    document.getElementById('previewKp').innerText = kp;
+    document.getElementById('previewPenempatan').innerText = penempatanTeks;
+  }
+
+  function hantarKehadiran(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnHantar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menghantar...';
+
+    const negeriBertugas = document.getElementById('negeriBertugas').value;
+    const daerahBertugas = document.getElementById('daerahBertugas').value;
+
+    const payload = {
+      batchKey: meetingParams.batchKey,
+      peringkat: meetingParams.stage,
+      bilNumber: meetingParams.bil,
+      tahunMesyuarat: meetingParams.tahun,
+      negeri: meetingParams.negeri,
+      nama: document.getElementById('namaAhli').value.trim().toUpperCase(),
+      noKp: document.getElementById('noKp').value.trim(),
+      emel: document.getElementById('emelAhli').value.trim().toLowerCase(),
+      noTel: document.getElementById('noTel').value.trim(),
+      negeriBertugas: negeriBertugas,
+      daerahBertugas: daerahBertugas,
+      jawatan: document.getElementById('jawatan').value.trim(),
+      integritySetuju: document.getElementById('chkIntegrity').checked ? 'SETUJU' : 'TIDAK'
+    };
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          Swal.fire({
+            title: 'Kehadiran Berjaya Direkodkan!',
+            text: 'Terima kasih atas kehadiran dan pengesahan Integrity Pact anda.',
+            icon: 'success',
+            confirmButtonColor: '#153f6a'
+          }).then(() => {
+            document.getElementById('formKehadiran').reset();
+            document.getElementById('daerahBertugas').disabled = true;
+            kemaskiniTeksIntegrity();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> HANTAR KEHADIRAN';
+          });
+        } else {
+          Swal.fire('Gagal', res ? res.message : 'Sila cuba lagi.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> HANTAR KEHADIRAN';
+        }
+      })
+      .withFailureHandler(err => {
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> HANTAR KEHADIRAN';
+      })
+      .simpanKehadiranMesyuarat(payload);
+  }
+</script>
+</body>
+</html>
