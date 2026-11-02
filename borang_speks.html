@@ -956,12 +956,30 @@
     window.onload = function() {
         setupTahunPengeluaran();
         setupDropdownTahunPengalaman();
+
+        // Semak sama ada borang masih DIBUKA atau DITUTUP oleh pentadbir
         if (typeof google !== 'undefined' && google.script && google.script.run) {
-            muatSenaraiNegeri();
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.statusBorang && res.statusBorang !== "BUKA") {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        // Jika bukan pemohon yang membuka draf/pindaan sedia ada, lencongkan ke tutup.html
+                        if (!urlParams.get('id')) {
+                            window.location.href = "tutup.html";
+                            return;
+                        }
+                    }
+                    muatSenaraiNegeri();
+                })
+                .withFailureHandler(function(err) {
+                    console.warn("Semakan status borang gagal:", err);
+                    muatSenaraiNegeri();
+                })
+                .semakStatusBorang();
         } else {
-            console.error("Objek google.script.run tidak ditemui.");
             setTimeout(muatSenaraiNegeri, 1000);
         }
+
         document.getElementById('applicationForm').addEventListener('submit', function(e) { e.preventDefault(); prosesHantar(false); });
         document.getElementById('negeri').addEventListener('change', function() { handleNegeriChange(this.value, 'daerah'); });
         document.getElementById('negeriPerusahaan').addEventListener('change', function() { 
@@ -993,40 +1011,72 @@
     }
 
     function prosesDataAwal() {
-        try {
-            var dataDrafRaw = `<?!= draftDataInitial ?>`;
-            if (dataDrafRaw && dataDrafRaw !== "null" && dataDrafRaw !== "") {
-                var decodedStr = decodeURIComponent(escape(window.atob(dataDrafRaw)));
-                var res = JSON.parse(decodedStr);
-                var dataUntukIsi = res.data ? res.data : res;
-                if (dataUntukIsi && (dataUntukIsi.appId || dataUntukIsi['ID Permohonan'] || dataUntukIsi['Nama Pemohon'] || dataUntukIsi.nama)) {
-                    isiBorang(dataUntukIsi);
-                    Swal.fire({
-                        padding: 0, background: '#ffffff', backdrop: 'rgba(21, 63, 106, 0.8)', showConfirmButton: true,
-                        confirmButtonText: 'Seterusnya &nbsp; ❯', confirmButtonColor: '#153f6a', width: '400px',
-                        html: `
-                            <div style="background: linear-gradient(135deg, #153f6a 0%, #007acc 100%); padding: 35px 20px; border-top-left-radius: 4px; border-top-right-radius: 4px; text-align: center;">
-                                <div style="background: rgba(255,255,255,0.15); width: 75px; height: 75px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                        <polyline points="8 13 12 17 16 13"></polyline>
-                                        <line x1="12" y1="17" x2="12" y2="9"></line>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div style="padding: 30px 25px 20px;">
-                                <h3 style="margin: 0; color: #153f6a; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">Data Dipulihkan</h3>
-                                <div style="width: 40px; height: 3px; background-color: #007acc; margin: 15px auto;"></div>
-                                <p style="color: #555; font-size: 15px; margin: 0; line-height: 1.6;">Borang anda telah diisi semula dengan maklumat terakhir yang disimpan. Anda boleh menyambung permohonan sekarang.</p>
-                            </div>
-                        `
-                    });
+        // Baca parameter ID draf atau ID permohonan daripada URL pelayar
+        const urlParams = new URLSearchParams(window.location.search);
+        const draftId = urlParams.get('id') || urlParams.get('token') || '';
+
+        if (!draftId) return;
+
+        Swal.fire({
+            title: 'Memuatkan Data...',
+            text: 'Sila tunggu sebentar sementara rekod diambil dari pelayan.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        // 1. Semak rekod di dalam helaian Draf
+        google.script.run
+            .withSuccessHandler(function(resDraf) {
+                if (resDraf && resDraf.found) {
+                    Swal.close();
+                    isiBorang(resDraf.data || resDraf);
+                    tunjukPopupDataDipulihkan();
+                } else {
+                    // 2. Jika tiada dalam draf, semak dalam rekod permohonan rasmi (kes pindaan pemohon)
+                    google.script.run
+                        .withSuccessHandler(function(resRasmi) {
+                            Swal.close();
+                            if (resRasmi && resRasmi.found) {
+                                isiBorang(resRasmi.data || resRasmi);
+                                tunjukPopupDataDipulihkan();
+                            }
+                        })
+                        .withFailureHandler(function(err) {
+                            Swal.close();
+                            console.warn("Gagal memuatkan rekod rasmi:", err);
+                        })
+                        .ambilDataPermohonan(draftId);
                 }
-            }
-        } catch (e) {
-            console.warn("Tiada draf untuk dimuatkan.");
-        }
+            })
+            .withFailureHandler(function(err) {
+                Swal.close();
+                console.warn("Gagal memuatkan draf:", err);
+            })
+            .dapatkanDataDraf(draftId);
+    }
+
+    function tunjukPopupDataDipulihkan() {
+        Swal.fire({
+            padding: 0, background: '#ffffff', backdrop: 'rgba(21, 63, 106, 0.8)', showConfirmButton: true,
+            confirmButtonText: 'Seterusnya &nbsp; ❯', confirmButtonColor: '#153f6a', width: '400px',
+            html: `
+                <div style="background: linear-gradient(135deg, #153f6a 0%, #007acc 100%); padding: 35px 20px; border-top-left-radius: 4px; border-top-right-radius: 4px; text-align: center;">
+                    <div style="background: rgba(255,255,255,0.15); width: 75px; height: 75px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <polyline points="8 13 12 17 16 13"></polyline>
+                            <line x1="12" y1="17" x2="12" y2="9"></line>
+                        </svg>
+                    </div>
+                </div>
+                <div style="padding: 30px 25px 20px;">
+                    <h3 style="margin: 0; color: #153f6a; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">Data Dipulihkan</h3>
+                    <div style="width: 40px; height: 3px; background-color: #007acc; margin: 15px auto;"></div>
+                    <p style="color: #555; font-size: 15px; margin: 0; line-height: 1.6;">Borang anda telah diisi semula dengan maklumat terakhir yang disimpan. Anda boleh menyambung permohonan sekarang.</p>
+                </div>
+            `
+        });
     }
 
     function kosongkanBorangSecaraPenuh() {
@@ -1752,10 +1802,10 @@
 
         Promise.all(filePromises).then(processedFiles => {
             formData.files = processedFiles;
-            hantarKeServer(formData, isDraf);
+            hantarKeServer(formData, isDraf, progressInterval, kemaskiniProgressModal);
         });
     } else {
-        hantarKeServer(formData, isDraf);
+        hantarKeServer(formData, isDraf, progressInterval, kemaskiniProgressModal);
     }
 
     if (!isDraf) {
@@ -2211,7 +2261,11 @@ window.addEventListener('popstate', function(event) {
     }).then((result) => {
         if (result.isConfirmed) {
             localStorage.removeItem('speks_temp_draft');
-            window.history.go(-2);
+            if (window.history.length > 2) {
+                window.history.go(-2);
+            } else {
+                window.location.href = "index.html";
+            }
         }
     });
 });
