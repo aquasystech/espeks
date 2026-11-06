@@ -4981,7 +4981,7 @@ function escapeHtmlInduk(value) {
     bukaStepWizard(2);
   }
 
-  // ── STEP 2: KEHADIRAN QR ──
+  // ── STEP 2: KEHADIRAN QR & PAUTAN KEHADIRAN.HTML ──
   function janaDanPaparQrWizard() {
     const bKey = binaBatchKeySemasa();
     const bil = document.getElementById('assessment-batch-bil')?.value || '';
@@ -4989,9 +4989,22 @@ function escapeHtmlInduk(value) {
     const tarikh = document.getElementById('assessment-batch-date')?.value || '';
     const stage = activeBatchStage || 'negeri';
     const negeri = currentUser ? (currentUser.negeri || '') : '';
-    const baseUrl = scriptUrl !== "" ? scriptUrl : "URL_APPS_SCRIPT_ANDA";
 
-    const linkKehadiran = `${baseUrl}?page=kehadiran&batchKey=${encodeURIComponent(bKey)}&peringkat=${encodeURIComponent(stage)}&bil=${encodeURIComponent(bil)}&tahun=${encodeURIComponent(tahun)}&negeri=${encodeURIComponent(negeri)}&tarikh=${encodeURIComponent(tarikh)}`;
+    // Bina URL penuh ke kehadiran.html mengikut lokasi domain (GitHub Pages)
+    let baseKehadiranUrl = 'kehadiran.html';
+    try {
+      if (window.location.protocol.startsWith('http')) {
+        const pathTanpaQuery = window.location.href.split('?')[0];
+        baseKehadiranUrl = pathTanpaQuery.substring(0, pathTanpaQuery.lastIndexOf('/') + 1) + 'kehadiran.html';
+      }
+    } catch (e) {
+      baseKehadiranUrl = 'kehadiran.html';
+    }
+
+    // Cantumkan parameter mesyuarat ke fail kehadiran.html
+    const linkKehadiran = `${baseKehadiranUrl}?batchKey=${encodeURIComponent(bKey)}&peringkat=${encodeURIComponent(stage)}&bil=${encodeURIComponent(bil)}&tahun=${encodeURIComponent(tahun)}&negeri=${encodeURIComponent(negeri)}&tarikh=${encodeURIComponent(tarikh)}`;
+    
+    // Jana Kod QR untuk imbasan telefon ahli mesyuarat
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(linkKehadiran)}`;
 
     const qrImg = document.getElementById('qrWizardImage');
@@ -5000,8 +5013,12 @@ function escapeHtmlInduk(value) {
     const titleEl = document.getElementById('qrWizardBatchTitle');
     if (titleEl) titleEl.innerText = bKey;
 
+    // Sambungkan butang "Buka Pautan Manual" terus ke kehadiran.html
     const btnLink = document.getElementById('btnBukaLinkQrWizard');
-    if (btnLink) btnLink.href = linkKehadiran;
+    if (btnLink) {
+      btnLink.href = linkKehadiran;
+      btnLink.target = "_blank";
+    }
 
     muatKehadiranWizardRealtime();
   }
