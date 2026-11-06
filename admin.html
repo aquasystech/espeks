@@ -648,83 +648,249 @@
       </div>
     </div>
 
-    <!-- WORKSPACE BATCH PENILAIAN BAHARU: INDUK / NEGERI / PRA -->
+    <!-- WIZARD MESYUARAT 6-LANGKAH (PAGE 1 HINGGA PAGE 6) -->
     <section id="assessment-batch-section" class="card border-0 shadow-sm mb-3" style="display:none;">
       <div class="card-body p-3 p-md-4">
         
-        <!-- HEADER WORKSPACE -->
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <!-- PENGEPALA WIZARD -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom pb-2">
           <div>
-            <h5 class="fw-bold text-primary mb-1" id="assessment-batch-title">Batch Penilaian</h5>
-            <div class="small text-muted" id="assessment-batch-description">Semak dan sahkan permohonan sebelum penilaian.</div>
+            <h5 class="fw-bold text-primary mb-0" id="assessment-batch-title">Mesyuarat Jawatankuasa SPeKS</h5>
+            <small class="text-muted" id="assessment-batch-description">Pengendalian Sesi Mesyuarat Berperingkat</small>
           </div>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="showSection('table')">
-            <i class="bi bi-arrow-left me-1"></i>Kembali ke Senarai
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke Senarai
           </button>
         </div>
 
-        <div class="alert alert-info py-2 small mb-3" id="assessment-batch-status-note"></div>
+        <!-- STEPPER INDICATOR (1 - 6) -->
+        <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded-3 overflow-x-auto text-nowrap gap-2" id="wizardStepper">
+          <button type="button" class="btn btn-sm btn-primary fw-bold rounded-pill px-3 step-pill active" onclick="bukaStepWizard(1)">1. Tetapan Mesyuarat</button>
+          <i class="bi bi-chevron-right text-muted"></i>
+          <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 step-pill" onclick="bukaStepWizard(2)">2. Kehadiran QR</button>
+          <i class="bi bi-chevron-right text-muted"></i>
+          <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 step-pill" onclick="bukaStepWizard(3)">3. Minit Lalu</button>
+          <i class="bi bi-chevron-right text-muted"></i>
+          <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 step-pill" onclick="bukaStepWizard(4)">4. Penilaian</button>
+          <i class="bi bi-chevron-right text-muted"></i>
+          <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 step-pill" onclick="bukaStepWizard(5)">5. Hal-Hal Lain</button>
+          <i class="bi bi-chevron-right text-muted"></i>
+          <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 step-pill" onclick="bukaStepWizard(6)">6. Selesai & Draf Minit</button>
+        </div>
 
-        <!-- BORANG PEMILIHAN MESYUARAT & BUTANG UTAMA -->
-        <div class="row g-2 align-items-end mb-3">
-          <div class="col-6 col-md-2">
-            <label class="form-label small fw-bold">Bil. Mesyuarat</label>
-            <select id="assessment-batch-bil" class="form-select form-select-sm shadow-sm" onchange="semakKetersediaanMinitBatch()">
-              <option value="">-- Pilih Bil. --</option>
-              <option>Bil. 1</option><option>Bil. 2</option><option>Bil. 3</option><option>Bil. 4</option><option>Bil. 5</option>
-              <option>Bil. 6</option><option>Bil. 7</option><option>Bil. 8</option><option>Bil. 9</option><option>Bil. 10</option>
-            </select>
+        <!-- ======================================================== -->
+        <!-- PAGE 1: TETAPAN MESYUARAT                                -->
+        <!-- ======================================================== -->
+        <div class="wizard-page" id="wizardPage1">
+          <div class="card border p-3 rounded-3 shadow-sm bg-white mb-3">
+            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-calendar-event me-2"></i>Langkah 1: Maklumat Asas Persidangan</h6>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Bil. Mesyuarat <span class="text-danger">*</span></label>
+                <select id="assessment-batch-bil" class="form-select form-select-sm shadow-sm" onchange="kemaskiniKunciMesyuaratPreview()">
+                  <option value="">-- Pilih Bil. --</option>
+                  <option value="Bil. 1">Bil. 1</option><option value="Bil. 2">Bil. 2</option><option value="Bil. 3">Bil. 3</option>
+                  <option value="Bil. 4">Bil. 4</option><option value="Bil. 5">Bil. 5</option><option value="Bil. 6">Bil. 6</option>
+                  <option value="Bil. 7">Bil. 7</option><option value="Bil. 8">Bil. 8</option><option value="Bil. 9">Bil. 9</option>
+                  <option value="Bil. 10">Bil. 10</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Tahun Mesyuarat <span class="text-danger">*</span></label>
+                <select id="assessment-batch-year" class="form-select form-select-sm shadow-sm" onchange="kemaskiniKunciMesyuaratPreview()"></select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Tarikh Mesyuarat <span class="text-danger">*</span></label>
+                <input type="date" id="assessment-batch-date" class="form-control form-control-sm shadow-sm">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Masa Mula</label>
+                <input type="text" id="wizardMasaMesyuarat" class="form-control form-control-sm shadow-sm" value="9:30 Pagi">
+              </div>
+              <div class="col-md-12">
+                <label class="form-label small fw-bold">Tempat / Lokasi / Pautan</label>
+                <input type="text" id="wizardTempatMesyuarat" class="form-control form-control-sm shadow-sm" placeholder="Contoh: Bilik Mesyuarat Utama / Google Meet">
+              </div>
+            </div>
+            <div class="alert alert-light border mt-3 mb-0 small text-primary fw-bold" id="assessment-batch-key">
+              Sila lengkapkan pilihan mesyuarat di atas.
+            </div>
           </div>
-
-          <div class="col-6 col-md-2">
-            <label class="form-label small fw-bold">Tahun Mesyuarat</label>
-            <select id="assessment-batch-year" class="form-select form-select-sm shadow-sm" onchange="semakKetersediaanMinitBatch()"></select>
-          </div>
-
-          <div class="col-6 col-md-2">
-            <label class="form-label small fw-bold">Tarikh Mesyuarat</label>
-            <input type="date" id="assessment-batch-date" class="form-control form-control-sm shadow-sm">
-          </div>
-
-          <!-- BUTANG ACTION BERSEBELAHAN (TERMASUK EMEL JEMPUTAN) -->
-          <div class="col-12 col-md-6 d-flex gap-2">
-            <button type="button" class="btn btn-primary btn-sm fw-bold flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-1" onclick="muatSenaraiBatchPenilaian()">
-              <i class="bi bi-search"></i> <span>Semak Permohonan Yang Akan Diangkat</span>
-            </button>
-            <button type="button" class="btn btn-success btn-sm fw-bold flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-1" onclick="paparQrKehadiran()">
-              <i class="bi bi-qr-code-scan"></i> <span>QR Kehadiran Ahli JK SPeKS</span>
+          <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-primary fw-bold px-4" onclick="teruskanDariPage1()">
+              Seterusnya (Kehadiran QR) <i class="bi bi-arrow-right ms-1"></i>
             </button>
           </div>
         </div>
 
-        <div id="assessment-batch-key" class="small text-muted mb-3"></div>
-
-        <!-- JADUAL TUNGGAL: SENARAI PERMOHONAN LAYAK DINILAI -->
-        <div class="card border mb-3 shadow-sm rounded-3">
-          <div class="card-header bg-light fw-bold small d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
-            <span><i class="bi bi-list-check text-primary me-1"></i> SENARAI PERMOHONAN LAYAK DINILAI</span>
-            <span class="badge bg-primary rounded-pill px-3 py-1" id="assessment-batch-active-count">0 Permohonan</span>
+        <!-- ======================================================== -->
+        <!-- PAGE 2: PENDAFTARAN KEHADIRAN (QR & SENARAI REAL-TIME)   -->
+        <!-- ======================================================== -->
+        <div class="wizard-page" id="wizardPage2" style="display:none;">
+          <div class="card border p-3 rounded-3 shadow-sm bg-white mb-3">
+            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-qr-code-scan me-2"></i>Langkah 2: Imbasan Kod QR Kehadiran Ahli Jawatankuasa</h6>
+            <div class="row g-4 align-items-center">
+              <div class="col-md-4 text-center border-end">
+                <div class="bg-white p-2 rounded border d-inline-block shadow-sm mb-2">
+                  <img id="qrWizardImage" src="" alt="Kod QR Kehadiran" style="width:190px; height:190px; object-fit:contain;">
+                </div>
+                <div class="small fw-bold text-dark mt-1" id="qrWizardBatchTitle">-</div>
+                <small class="text-muted d-block">Imbas untuk merekod kehadiran & Integrity Pact</small>
+                <a id="btnBukaLinkQrWizard" href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill mt-2">
+                  <i class="bi bi-box-arrow-up-right me-1"></i> Buka Pautan Manual
+                </a>
+              </div>
+              <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold small text-dark"><i class="bi bi-people-fill text-primary me-1"></i> Senarai Kehadiran Terkini</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-pill px-3 py-1" id="qrWizardCount">0 Orang Hadir</span>
+                    <button class="btn btn-sm btn-light border" onclick="muatKehadiranWizardRealtime()" title="Muat Semula">
+                      <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="table-responsive border rounded bg-light" style="max-height:260px; overflow-y:auto;">
+                  <table class="table table-sm table-hover align-middle mb-0 small">
+                    <thead class="table-light sticky-top">
+                      <tr>
+                        <th class="text-center" style="width:35px;">Bil</th>
+                        <th>Nama Ahli</th>
+                        <th>Jawatan / Penempatan</th>
+                        <th class="text-end" style="width:85px;">Masa</th>
+                      </tr>
+                    </thead>
+                    <tbody id="qrWizardTableBody">
+                      <tr><td colspan="4" class="text-center text-muted py-3">Menunggu imbasan kehadiran ahli...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th style="width: 45px; text-align: center;">Bil</th>
-                  <th style="min-width: 140px;">ID Permohonan</th>
-                  <th style="min-width: 220px;">Nama Pemohon</th>
-                  <th style="min-width: 150px;">Negeri Perusahaan</th>
-                  <th style="min-width: 160px;">Status Semasa</th>
-                  <th style="width: 140px; text-align: center;">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="assessment-batch-active-list">
-                <tr>
-                  <td colspan="6" class="text-center text-muted py-4">
-                    Sila pilih Bilangan dan Tahun Mesyuarat, kemudian tekan <b>Semak Permohonan Yang Layak</b>.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" onclick="bukaStepWizard(1)"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
+            <button type="button" class="btn btn-primary fw-bold px-4" onclick="bukaStepWizard(3)">Seterusnya (Minit Lalu) <i class="bi bi-arrow-right ms-1"></i></button>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PAGE 3: PENGESAHAN MINIT MESYUARAT YANG LALU             -->
+        <!-- ======================================================== -->
+        <div class="wizard-page" id="wizardPage3" style="display:none;">
+          <div class="card border p-3 rounded-3 shadow-sm bg-white mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+              <h6 class="fw-bold text-primary m-0"><i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Langkah 3: Pengesahan Minit Mesyuarat Terdahulu</h6>
+              <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="zoomMinitViewer(-0.1)" title="Zoom Keluar"><i class="bi bi-zoom-out"></i></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="zoomMinitViewer(0)" title="Reset Zoom">100%</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="zoomMinitViewer(0.1)" title="Zoom Masuk"><i class="bi bi-zoom-in"></i></button>
+                <a id="btnBukaTabMinitLalu" href="#" target="_blank" class="btn btn-sm btn-outline-primary ms-1" style="display:none;">
+                  <i class="bi bi-fullscreen me-1"></i> Tab Baharu
+                </a>
+              </div>
+            </div>
+            <div id="minitLaluStatusAlert" class="alert alert-info py-2 small mb-2">Memeriksa fail minit terdahulu...</div>
+            <div id="minitViewerContainer" style="height:480px; width:100%; border:1px solid #dee2e6; border-radius:6px; overflow:hidden; background:#525659; display:none;">
+              <iframe id="iframeMinitLalu" src="" style="width:100%; height:100%; border:none; transform-origin: top center; transition: transform 0.2s ease;"></iframe>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" onclick="bukaStepWizard(2)"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
+            <button type="button" class="btn btn-primary fw-bold px-4" onclick="bukaStepWizard(4)">Seterusnya (Penilaian) <i class="bi bi-arrow-right ms-1"></i></button>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PAGE 4: PENILAIAN PERMOHONAN LAYAK                       -->
+        <!-- ======================================================== -->
+        <div class="wizard-page" id="wizardPage4" style="display:none;">
+          <div class="card border mb-3 shadow-sm rounded-3">
+            <div class="card-header bg-light fw-bold small d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+              <span><i class="bi bi-list-check text-primary me-1"></i> Langkah 4: Penilaian Permohonan Layak</span>
+              <span class="badge bg-primary rounded-pill px-3 py-1" id="assessment-batch-active-count">0 Permohonan</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:45px; text-align:center;">Bil</th>
+                    <th style="min-width:140px;">ID Permohonan</th>
+                    <th style="min-width:200px;">Nama Pemohon</th>
+                    <th style="min-width:170px;">Negeri Perusahaan</th>
+                    <th style="min-width:150px;">Status Semasa</th>
+                    <th style="width:140px; text-align:center;">Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody id="assessment-batch-active-list">
+                  <tr><td colspan="6" class="text-center text-muted py-4">Memuatkan senarai permohonan...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" onclick="bukaStepWizard(3)"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
+            <button type="button" class="btn btn-primary fw-bold px-4" onclick="bukaStepWizard(5)">Seterusnya (Hal-Hal Lain) <i class="bi bi-arrow-right ms-1"></i></button>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PAGE 5: TOPIK PERBINCANGAN & HAL-HAL LAIN                -->
+        <!-- ======================================================== -->
+        <div class="wizard-page" id="wizardPage5" style="display:none;">
+          <div class="card border p-3 rounded-3 shadow-sm bg-white mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="fw-bold text-primary m-0"><i class="bi bi-chat-square-text me-2"></i>Langkah 5: Perkara Berbangkit & Hal-Hal Lain</h6>
+                <small class="text-muted">Masukkan topik isu atau perbincangan dasar yang dibangkitkan semasa mesyuarat.</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="tambahBarisTopikPerbincangan()">
+                <i class="bi bi-plus-circle me-1"></i> Tambah Isu
+              </button>
+            </div>
+            <div id="kontenaTopikPerbincangan">
+              <!-- Baris topik dinamik dijana di sini -->
+            </div>
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" onclick="bukaStepWizard(4)"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
+            <button type="button" class="btn btn-primary fw-bold px-4" onclick="bukaStepWizard(6)">Seterusnya (Selesai & Jana Minit) <i class="bi bi-arrow-right ms-1"></i></button>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PAGE 6: SELESAI & JANA DRAF MINIT GOOGLE DOCS            -->
+        <!-- ======================================================== -->
+        <div class="wizard-page" id="wizardPage6" style="display:none;">
+          <div class="card border-0 p-4 rounded-4 shadow-sm bg-white mb-3 text-center">
+            <div class="mb-3">
+              <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle d-inline-block">
+                <i class="bi bi-check-circle-fill" style="font-size:3rem;"></i>
+              </div>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Persidangan Mesyuarat Selesai</h4>
+            <p class="text-muted small mb-4">Semua permohonan telah dinilai dan direkodkan. Anda kini boleh menjana draf minit mesyuarat lengkap untuk semakan dan suntingan akhir.</p>
+            
+            <div class="row g-3 justify-content-center mb-4 text-start">
+              <div class="col-md-8">
+                <div class="p-3 bg-light rounded-3 border">
+                  <div class="d-flex justify-content-between py-1 border-bottom"><span>Sidang:</span><strong id="w6Sidang">-</strong></div>
+                  <div class="d-flex justify-content-between py-1 border-bottom"><span>Tarikh:</span><strong id="w6Tarikh">-</strong></div>
+                  <div class="d-flex justify-content-between py-1 border-bottom"><span>Kehadiran Ahli:</span><strong id="w6Kehadiran">0 Orang</strong></div>
+                  <div class="d-flex justify-content-between py-1"><span>Isu Hal-Hal Lain:</span><strong id="w6TopikCount">0 Perkara</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+              <button type="button" class="btn btn-success btn-lg fw-bold shadow px-4" id="btnJanaGoogleDoc" onclick="laksanaJanaDrafMinitGoogleDoc()">
+                <i class="bi bi-file-earmark-word-fill me-2"></i> Jana Draf Minit Google Docs (Boleh Disunting)
+              </button>
+            </div>
+            <div id="hasilJanaDocWrap" class="mt-4" style="display:none;"></div>
+          </div>
+          <div class="d-flex justify-content-start">
+            <button type="button" class="btn btn-outline-secondary" onclick="bukaStepWizard(5)"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
           </div>
         </div>
 
