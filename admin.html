@@ -4845,92 +4845,374 @@ function escapeHtmlInduk(value) {
     }
   };
 
+  // ── WIZARD CONTROLLER: PENGURUSAN LANGKAH 1 HINGGA 6 ──
+  let wizardCurrentStep = 1;
+  let wizardIframeZoom = 1.0;
+
   function bukaHalamanBatch(stage) {
-  const cfg = batchStageConfig[stage];
-  const allowedRoles = Array.isArray(cfg?.role) ? cfg.role : [cfg?.role];
-  if (!cfg || !currentUser || !allowedRoles.includes(currentUser.role)) {
-    return Swal.fire('Akses Ditolak', 'Akaun ini tidak dibenarkan membuka halaman batch tersebut.', 'error');
+    const cfg = batchStageConfig[stage];
+    const allowedRoles = Array.isArray(cfg?.role) ? cfg.role : [cfg?.role];
+    if (!cfg || !currentUser || !allowedRoles.includes(currentUser.role)) {
+      return Swal.fire('Akses Ditolak', 'Akaun ini tidak dibenarkan membuka halaman batch tersebut.', 'error');
+    }
+
+    activeBatchStage = stage;
+    activeBatchPayload = null;
+
+    [
+      'main-table-container', 'hq-stats-section', 'eval-section', 
+      'minit-master-section', 'minit-negeri-section', 'minit-pra-section',
+      'analisis-peruntukan-section', 'jk-induk-bulk-action-bar', 'batch-mesyuarat-induk-section'
+    ].forEach(id => {
+      const el = document.getElementById(id); 
+      if (el) el.style.display = 'none'; 
+    });
+
+    const filters = document.getElementById('filters-container'); 
+    if (filters) filters.style.display = 'none';
+
+    const panel = document.getElementById('assessment-batch-section'); 
+    if (panel) panel.style.display = 'block';
+
+    document.querySelectorAll('.nav-pill-btn').forEach(b => b.classList.remove('active'));
+
+    const parentMenuId = stage === 'induk' ? 'btn-menu-jk-induk' : stage === 'negeri' ? 'btn-menu-jk-negeri' : 'btn-menu-jk-pra';
+    const parentMenu = document.getElementById(parentMenuId); 
+    if (parentMenu) parentMenu.classList.add('active');
+
+    const subMenuId = stage === 'induk' ? 'btn-penilaian-induk-batch' : stage === 'negeri' ? 'btn-penilaian-negeri-batch' : 'btn-penilaian-pra-batch';
+    const subMenu = document.getElementById(subMenuId);
+    if (subMenu) subMenu.classList.add('active');
+
+    document.getElementById('assessment-batch-title').innerText = cfg.title;
+    document.getElementById('assessment-batch-description').innerText = cfg.description;
+
+    const elYear = document.getElementById('assessment-batch-year');
+    if (elYear) {
+      const now = new Date().getFullYear();
+      elYear.innerHTML = '<option value="">-- Pilih Tahun --</option>';
+      for (let y = now - 5; y <= now + 5; y++) elYear.add(new Option(String(y), String(y)));
+      elYear.value = String(now);
+    }
+
+    const dateEl = document.getElementById('assessment-batch-date'); 
+    if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
+
+    // Set semula topik perbincangan jika kosong
+    const kontenaTopik = document.getElementById('kontenaTopikPerbincangan');
+    if (kontenaTopik && kontenaTopik.children.length === 0) {
+      tambahBarisTopikPerbincangan();
+    }
+
+    bukaStepWizard(1);
+    kemaskiniKunciMesyuaratPreview();
   }
 
-  // KAWALAN BUTANG EMEL JEMPUTAN (PILIHAN A):
-  // Untuk mesyuarat Negeri, HANYA KCAN PPN (Urusetia) dibenarkan menghantar e-mel jemputan.
-  // Pengerusi (Jawatan Kuasa SPeKS Negeri) disembunyikan butang ini secara automatik.
-  const btnJemputan = document.getElementById('btn-batch-emel-jemputan');
-  if (btnJemputan) {
-    if (stage === 'negeri') {
-      btnJemputan.style.display = (currentUser.role === 'KCAN PPN') ? 'inline-flex' : 'none';
-    } else {
-      btnJemputan.style.display = 'inline-flex';
+  function bukaStepWizard(stepNum) {
+    wizardCurrentStep = stepNum;
+
+    // Sembunyikan semua page wizard
+    for (let i = 1; i <= 6; i++) {
+      const pageEl = document.getElementById(`wizardPage${i}`);
+      if (pageEl) pageEl.style.display = (i === stepNum) ? 'block' : 'none';
+    }
+
+    // Kemaskini sorotan butang Stepper
+    const stepperBtns = document.querySelectorAll('#wizardStepper .step-pill');
+    stepperBtns.forEach((btn, idx) => {
+      const btnStep = idx + 1;
+      if (btnStep === stepNum) {
+        btn.className = "btn btn-sm btn-primary fw-bold rounded-pill px-3 step-pill active";
+      } else if (btnStep < stepNum) {
+        btn.className = "btn btn-sm btn-success fw-bold rounded-pill px-3 step-pill";
+      } else {
+        btn.className = "btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 step-pill";
+      }
+    });
+
+    // Panggilan khas mengikut langkah
+    if (stepNum === 2) {
+      janaDanPaparQrWizard();
+    } else if (stepNum === 3) {
+      muatMinitLepasViewerWizard();
+    } else if (stepNum === 4) {
+      muatSenaraiBatchPenilaian();
+    } else if (stepNum === 6) {
+      kemaskiniRingkasanPage6();
     }
   }
 
-  function isiTahunBatchPenilaian() {
-    const el = document.getElementById('assessment-batch-year');
-    if (!el) return;
-    const now = new Date().getFullYear();
-    el.innerHTML = '<option value="">-- Pilih Tahun --</option>';
-    for (let y = now - 5; y <= now + 5; y++) el.add(new Option(String(y), String(y)));
-  }
-  
-  activeBatchStage = stage;
-  activeBatchPayload = null;
-  
-  // Sembunyikan semua seksyen lain termasuk Analisis Peruntukan Tahunan
-  [
-    'main-table-container', 
-    'hq-stats-section', 
-    'eval-section', 
-    'minit-master-section', 
-    'minit-negeri-section', 
-    'minit-pra-section',
-    'analisis-peruntukan-section',
-    'jk-induk-bulk-action-bar',
-    'batch-mesyuarat-induk-section'
-  ].forEach(id => {
-    const el = document.getElementById(id); 
-    if (el) el.style.display = 'none'; 
-  });
-  
-  const filters = document.getElementById('filters-container'); if (filters) filters.style.display = 'none';
-  const panel = document.getElementById('assessment-batch-section'); if (panel) panel.style.display = 'block';
-  
-  // Buang kelas active dari semua butang navigasi & dropdown header
-  document.querySelectorAll('.nav-pill-btn').forEach(b => b.classList.remove('active'));
-  
-  // Sorot (highlight) Dropdown Header utama berdasarkan peringkat (stage)
-  const parentMenuId = stage === 'induk' ? 'btn-menu-jk-induk' : stage === 'negeri' ? 'btn-menu-jk-negeri' : 'btn-menu-jk-pra';
-  const parentMenu = document.getElementById(parentMenuId); 
-  if (parentMenu) parentMenu.classList.add('active');
-
-  // Sorot item pilihan dalam dropdown menu
-  const subMenuId = stage === 'induk' ? 'btn-penilaian-induk-batch' : stage === 'negeri' ? 'btn-penilaian-negeri-batch' : 'btn-penilaian-pra-batch';
-  const subMenu = document.getElementById(subMenuId);
-  if (subMenu) subMenu.classList.add('active');
-
-  document.getElementById('assessment-batch-title').innerText = cfg.title;
-  document.getElementById('assessment-batch-description').innerText = cfg.description;
-  document.getElementById('assessment-batch-status-note').innerHTML = 'Status kelayakan: <b>' + cfg.status + '</b>. Senarai perlu disemak dan disahkan pengguna sebelum menjadi batch rasmi.' + (stage === 'negeri' ? ' Negeri: <b>' + escapeHtmlInduk(String(currentUser.negeri || '')) + '</b>.' : '');
-  document.getElementById('assessment-batch-key').innerText = '';
-  const listActive = document.getElementById('assessment-batch-active-list');
-  if (listActive) {
-    listActive.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Sila pilih Bilangan dan Tahun Mesyuarat, kemudian tekan <b>Semak Permohonan Yang Layak</b>.</td></tr>';
-  }
-  const countActive = document.getElementById('assessment-batch-active-count');
-  if (countActive) countActive.innerText = '0 Permohonan';
-  isiTahunBatchPenilaian();
-  
-  const dateEl = document.getElementById('assessment-batch-date'); 
-  if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0,10);
-  
-  if (stage === 'negeri') {
-    const locationInfo = document.getElementById('location-info');
-    if (locationInfo && currentUser.negeri) locationInfo.innerText = 'Wilayah: ' + currentUser.negeri;
+  function kemaskiniKunciMesyuaratPreview() {
+    const elBil = document.getElementById('assessment-batch-bil');
+    const elTahun = document.getElementById('assessment-batch-year');
+    const bKey = binaBatchKeySemasa();
+    const infoEl = document.getElementById('assessment-batch-key');
+    if (infoEl) {
+      infoEl.innerText = (elBil && elBil.value && elTahun && elTahun.value) 
+        ? `Persidangan: ${bKey}` 
+        : 'Sila lengkapkan pilihan mesyuarat di atas.';
+    }
   }
 
-  // Reset status Minit (jika elemen masih wujud)
-  const badge = document.getElementById('badgeMinitStatus');
-  if (badge) { badge.className = "badge bg-secondary"; badge.innerText = "Sila Pilih Mesyuarat"; }
-}
+  function binaBatchKeySemasa() {
+    const bil = document.getElementById('assessment-batch-bil')?.value || '';
+    const tahun = document.getElementById('assessment-batch-year')?.value || '';
+    const stage = activeBatchStage || 'negeri';
+    const negeri = currentUser ? (currentUser.negeri || '') : '';
+
+    if (stage === 'negeri') {
+      return `Mesyuarat Jawatan Kuasa SPeKS Negeri (${negeri}) ${bil}/ ${tahun}`;
+    } else if (stage === 'pra') {
+      return `Mesyuarat Jawatan Kuasa Pra SPeKS ${bil}/ ${tahun}`;
+    } else {
+      return `Mesyuarat Jawatan Kuasa SPeKS Induk ${bil}/ ${tahun}`;
+    }
+  }
+
+  function teruskanDariPage1() {
+    const bil = document.getElementById('assessment-batch-bil')?.value;
+    const tahun = document.getElementById('assessment-batch-year')?.value;
+    const tarikh = document.getElementById('assessment-batch-date')?.value;
+
+    if (!bil || !tahun || !tarikh) {
+      return Swal.fire('Maklumat Belum Lengkap', 'Sila isi Bil. Mesyuarat, Tahun Mesyuarat, dan Tarikh Mesyuarat.', 'warning');
+    }
+
+    bukaStepWizard(2);
+  }
+
+  // ── STEP 2: KEHADIRAN QR ──
+  function janaDanPaparQrWizard() {
+    const bKey = binaBatchKeySemasa();
+    const bil = document.getElementById('assessment-batch-bil')?.value || '';
+    const tahun = document.getElementById('assessment-batch-year')?.value || '';
+    const tarikh = document.getElementById('assessment-batch-date')?.value || '';
+    const stage = activeBatchStage || 'negeri';
+    const negeri = currentUser ? (currentUser.negeri || '') : '';
+    const baseUrl = scriptUrl !== "" ? scriptUrl : "URL_APPS_SCRIPT_ANDA";
+
+    const linkKehadiran = `${baseUrl}?page=kehadiran&batchKey=${encodeURIComponent(bKey)}&peringkat=${encodeURIComponent(stage)}&bil=${encodeURIComponent(bil)}&tahun=${encodeURIComponent(tahun)}&negeri=${encodeURIComponent(negeri)}&tarikh=${encodeURIComponent(tarikh)}`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(linkKehadiran)}`;
+
+    const qrImg = document.getElementById('qrWizardImage');
+    if (qrImg) qrImg.src = qrApiUrl;
+
+    const titleEl = document.getElementById('qrWizardBatchTitle');
+    if (titleEl) titleEl.innerText = bKey;
+
+    const btnLink = document.getElementById('btnBukaLinkQrWizard');
+    if (btnLink) btnLink.href = linkKehadiran;
+
+    muatKehadiranWizardRealtime();
+  }
+
+  function muatKehadiranWizardRealtime() {
+    const bKey = binaBatchKeySemasa();
+    const tbody = document.getElementById('qrWizardTableBody');
+    const countBadge = document.getElementById('qrWizardCount');
+
+    google.script.run
+      .withSuccessHandler(senarai => {
+        if (!senarai || senarai.length === 0) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Belum ada ahli mengimbas kehadiran.</td></tr>';
+          if (countBadge) countBadge.innerText = '0 Orang Hadir';
+          return;
+        }
+
+        if (countBadge) countBadge.innerText = `${senarai.length} Orang Hadir`;
+        if (tbody) {
+          tbody.innerHTML = senarai.map((item, idx) => `
+            <tr>
+              <td class="text-center fw-bold">${idx + 1}</td>
+              <td class="fw-bold text-primary">${escapeHtmlInduk(item.nama)}</td>
+              <td>${escapeHtmlInduk(item.jawatan)} <small class="text-muted d-block">${escapeHtmlInduk(item.jabatan)}</small></td>
+              <td class="text-end text-muted">${escapeHtmlInduk(item.masa)}</td>
+            </tr>
+          `).join('');
+        }
+      })
+      .dapatkanSenaraiKehadiranBatch(bKey);
+  }
+
+  // ── STEP 3: MINIT LEPAS PREVIEW & ZOOM ──
+  function muatMinitLepasViewerWizard() {
+    const bil = document.getElementById('assessment-batch-bil')?.value || '';
+    const tahun = document.getElementById('assessment-batch-year')?.value || '';
+    const stage = activeBatchStage || 'negeri';
+    const negeri = currentUser ? (currentUser.negeri || '') : '';
+
+    const alertBox = document.getElementById('minitLaluStatusAlert');
+    const container = document.getElementById('minitViewerContainer');
+    const iframe = document.getElementById('iframeMinitLalu');
+    const btnTab = document.getElementById('btnBukaTabMinitLalu');
+
+    if (alertBox) alertBox.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Mencari minit mesyuarat terdahulu...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res && res.success && res.previewUrl) {
+          if (alertBox) alertBox.innerHTML = `Minit Mesyuarat Terdahulu: <strong>${escapeHtmlInduk(res.tajukMinit)}</strong> (Sedia disemak)`;
+          if (iframe) iframe.src = res.previewUrl;
+          if (container) container.style.display = 'block';
+          if (btnTab) {
+            btnTab.style.display = 'inline-block';
+            btnTab.href = res.urlMinit;
+          }
+          zoomMinitViewer(0);
+        } else {
+          if (alertBox) alertBox.innerHTML = `<span class="text-warning fw-bold">${res ? res.message : 'Tiada fail minit lalu ditemui.'}</span> Anda boleh meneruskan ke langkah seterusnya jika ini adalah mesyuarat pertama.`;
+          if (container) container.style.display = 'none';
+          if (btnTab) btnTab.style.display = 'none';
+        }
+      })
+      .withFailureHandler(err => {
+        if (alertBox) alertBox.innerHTML = `<span class="text-danger">Ralat carian minit: ${err.message}</span>`;
+      })
+      .dapatkanPautanMinitLepasViewer({
+        stage: stage,
+        bilNumber: bil,
+        tahunMesyuarat: tahun,
+        negeri: negeri
+      });
+  }
+
+  function zoomMinitViewer(delta) {
+    const iframe = document.getElementById('iframeMinitLalu');
+    if (!iframe) return;
+
+    if (delta === 0) {
+      wizardIframeZoom = 1.0;
+    } else {
+      wizardIframeZoom = Math.min(2.0, Math.max(0.7, wizardIframeZoom + delta));
+    }
+
+    iframe.style.transform = `scale(${wizardIframeZoom})`;
+    iframe.style.width = `${100 / wizardIframeZoom}%`;
+    iframe.style.height = `${100 / wizardIframeZoom}%`;
+  }
+
+  // ── STEP 5: TOPIK PERBINCANGAN DINAMIK ──
+  function tambahBarisTopikPerbincangan() {
+    const container = document.getElementById('kontenaTopikPerbincangan');
+    if (!container) return;
+
+    const count = container.children.length + 1;
+    const div = document.createElement('div');
+    div.className = "card border bg-light p-3 mb-2 topik-row rounded-3 shadow-sm";
+    div.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <strong class="text-primary small"><i class="bi bi-tag-fill me-1"></i> Perkara ${count}</strong>
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="padamBarisTopikPerbincangan(this)" title="Padam Topik">✕</button>
+      </div>
+      <div class="row g-2">
+        <div class="col-md-7">
+          <input type="text" class="form-control form-control-sm topik-tajuk" placeholder="Tajuk Isu / Perkara Berbangkit...">
+        </div>
+        <div class="col-md-5">
+          <input type="text" class="form-control form-control-sm topik-pembentang" placeholder="Tindakan / Pembentang (Contoh: PPD Hulu Langat)">
+        </div>
+        <div class="col-12">
+          <textarea class="form-control form-control-sm topik-catatan" rows="2" placeholder="Ringkasan perbincangan dan keputusan mesyuarat..."></textarea>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function padamBarisTopikPerbincangan(btn) {
+    const row = btn.closest('.topik-row');
+    if (row) row.remove();
+  }
+
+  function kumpulTopikPerbincanganWizard() {
+    const list = [];
+    document.querySelectorAll('#kontenaTopikPerbincangan .topik-row').forEach(row => {
+      const tajuk = row.querySelector('.topik-tajuk')?.value.trim();
+      const pembentang = row.querySelector('.topik-pembentang')?.value.trim();
+      const catatan = row.querySelector('.topik-catatan')?.value.trim();
+      if (tajuk || catatan) {
+        list.push({ tajuk: tajuk || 'Perkara Berbangkit', pembentang, catatan });
+      }
+    });
+    return list;
+  }
+
+  // ── STEP 6: SELESAI & JANA DRAF GOOGLE DOCS ──
+  function kemaskiniRingkasanPage6() {
+    const bKey = binaBatchKeySemasa();
+    const tarikh = document.getElementById('assessment-batch-date')?.value || '-';
+    const countHadir = document.getElementById('qrWizardCount')?.innerText || '0 Orang';
+    const topikList = kumpulTopikPerbincanganWizard();
+
+    document.getElementById('w6Sidang').innerText = bKey;
+    document.getElementById('w6Tarikh').innerText = tarikh;
+    document.getElementById('w6Kehadiran').innerText = countHadir;
+    document.getElementById('w6TopikCount').innerText = `${topikList.length} Perkara`;
+  }
+
+  function laksanaJanaDrafMinitGoogleDoc() {
+    const btn = document.getElementById('btnJanaGoogleDoc');
+    const hasilWrap = document.getElementById('hasilJanaDocWrap');
+    if (btn) btn.disabled = true;
+
+    Swal.fire({
+      title: 'Menjana Draf Google Docs...',
+      text: 'Sistem sedang menyusun data kehadiran, permohonan, dan perbincangan ke dalam templat minit rasmi.',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    const payload = {
+      batchKey: binaBatchKeySemasa(),
+      bilNumber: document.getElementById('assessment-batch-bil')?.value || '',
+      tahunMesyuarat: document.getElementById('assessment-batch-year')?.value || '',
+      tarikhMesyuarat: document.getElementById('assessment-batch-date')?.value || '',
+      masa: document.getElementById('wizardMasaMesyuarat')?.value || '9:30 Pagi',
+      tempat: document.getElementById('wizardTempatMesyuarat')?.value || 'Bilik Mesyuarat',
+      stage: activeBatchStage || 'negeri',
+      negeri: currentUser ? (currentUser.negeri || '') : '',
+      topikPerbincangan: kumpulTopikPerbincanganWizard()
+    };
+
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close();
+        if (btn) btn.disabled = false;
+
+        if (res && res.success && res.docUrl) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Draf Minit Sedia!',
+            html: `Dokumen minit rasmi telah dijana dalam Google Drive anda.<br><br><b>${escapeHtmlInduk(res.tajuk)}</b>`,
+            confirmButtonColor: '#153f6a',
+            confirmButtonText: 'Buka Google Docs'
+          }).then(() => {
+            window.open(res.docUrl, '_blank');
+          });
+
+          if (hasilWrap) {
+            hasilWrap.style.display = 'block';
+            hasilWrap.innerHTML = `
+              <div class="alert alert-success d-inline-block text-start p-3 shadow-sm border">
+                <h6 class="fw-bold mb-1"><i class="bi bi-file-earmark-check-fill text-success me-2"></i>Draf Minit Mesyuarat Berjaya Dijana</h6>
+                <p class="small text-muted mb-2">Sila klik pautan di bawah untuk membuka dan memasukkan Perutusan Pengerusi:</p>
+                <a href="${res.docUrl}" target="_blank" class="btn btn-success fw-bold">
+                  <i class="bi bi-box-arrow-up-right me-1"></i> Buka Minit di Google Docs
+                </a>
+              </div>
+            `;
+          }
+        } else {
+          Swal.fire('Gagal Menjana', res ? res.message : 'Ralat semasa menjana dokumen.', 'error');
+        }
+      })
+      .withFailureHandler(err => {
+        Swal.close();
+        if (btn) btn.disabled = false;
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .janaDrafMinitGoogleDoc(payload);
+  }
 
   function semakKetersediaanMinitBatch() {
     const bil = document.getElementById('assessment-batch-bil').value;
