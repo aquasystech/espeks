@@ -199,6 +199,32 @@
 <script>
     document.getElementById('printDate').innerText = new Date().toLocaleString('en-MY');
 
+    // SEMAKAN STATUS AUTOMATIK APABILA KLIK DARI E-MEL
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramId = (urlParams.get('id') || '').trim();
+        const paramIc = (urlParams.get('ic') || urlParams.get('nokp') || '').trim();
+
+        // Jika pautan dibuka dari e-mel (ada ID atau No. KP), terus buat semakan
+        if (paramId || paramIc) {
+            if (paramId) document.getElementById('inputId').value = paramId;
+            if (paramIc) document.getElementById('inputIC').value = paramIc;
+
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('searchSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+
+            google.script.run
+                .withSuccessHandler(paparkanKeputusan)
+                .withFailureHandler(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('searchSection').style.display = 'block';
+                    Swal.fire('Ralat', err.message, 'error');
+                })
+                .semakStatusPermohonan(paramId, paramIc);
+        }
+    });
+
     // Carian automatik jika pautan dibuka bersama parameter URL (cth: status.html?id=SPEKS-2026-0001)
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
