@@ -4064,7 +4064,6 @@
       const rc = rl.replace(/\s+/g, '-');
       
       // Penanda visual pada lajur peranan aktif
-      // Jika KCAN PPN berada dalam mod persidangan negeri, lajur aktif dialihkan ke JK SPeKS Negeri
       const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
       const isCurrent = isUrusetiaNegeri 
         ? (rl === 'Jawatan Kuasa SPeKS Negeri')
@@ -4121,10 +4120,9 @@
 
       const origObj      = (window.applicantOriginalItems && window.applicantOriginalItems[idx]) ? window.applicantOriginalItems[idx] : null;
       
-      // Bersihkan teks [Sebab: ...] daripada nama item sambil mengekalkan pembolehubah asalItem
       const asalItem     = isAddedByOfficer || !origObj ? '-'  : String(origObj.item || '-').replace(/\[Sebab:\s*.*?\]/gi, '').trim();
       const asalSebab    = isAddedByOfficer || !origObj ? '-'  : (origObj.sebab || '-');
-      const asalQty      = isAddedByOfficer || !origObj ? '-'  : (parseInt(origObj.qty) || 0);
+      const asalQty      = isAddedByOfficer || !origObj ? 0    : (parseInt(origObj.qty) || 0);
       const asalHarga    = isAddedByOfficer || !origObj ? 0    : parseFloat(origObj.harga || 0);
       const asalJumlah   = isAddedByOfficer || !origObj ? '-'  : 'RM ' + formatDuit(asalQty * asalHarga);
       const asalHargaTxt = isAddedByOfficer || !origObj ? '-'  : formatDuit(asalHarga);
@@ -4147,18 +4145,75 @@
           }
       }
 
-      let rowHtml = `<tr>
-        <td style="${sticky}left:0;text-align:center;border:1px solid #dee2e6;padding:6px;min-width:36px;">
+      // =====================================================================
+      // 1. SEMAKAN PERUBAHAN ITEM MENGIKUT SEJARAH (PERSISTENT CHECK)
+      // =====================================================================
+      let pernahDipinda = false;
+      let pernahDitolak = !!(it.ditolakAwal);
+
+      // Semak sama ada mana-mana peringkat telah meminda nilai berbanding asal pemohon
+      rolesArr.forEach(roleName => {
+        const snapItem = (window.globalSnapshots && window.globalSnapshots[roleName]) ? window.globalSnapshots[roleName][idx] : null;
+        if (snapItem) {
+          const sQty = parseFloat(snapItem.qty) || 0;
+          const sHarga = parseFloat(snapItem.harga) || 0;
+          const sItem = String(snapItem.item || '').trim();
+          const sDecision = snapItem.sokongan || (snapItem.sokong === false ? 'TIDAK_SOKONG' : 'SOKONG');
+
+          if (!isAddedByOfficer) {
+            if (sQty !== asalQty || Math.abs(sHarga - asalHarga) > 0.01 || (sItem && sItem !== asalItem)) {
+              pernahDipinda = true;
+            }
+          }
+          if (sDecision === 'TIDAK_SOKONG') {
+            pernahDitolak = true;
+          }
+        }
+      });
+
+      // Semak juga jika peranan semasa sedang membuat pindaan aktif di borang
+      const curQtyCheck = parseFloat(it.qtyCurrent ?? it.qty ?? 0);
+      const curHargaCheck = parseFloat(it.hargaCurrent ?? it.harga ?? 0);
+      const curItemCheck = String(it.itemCurrent ?? it.item ?? '').replace(/\[Sebab:\s*.*?\]/gi, '').trim();
+      const curDecCheck = it.sokonganCurrent ?? it.sokongan ?? '';
+
+      if (!isAddedByOfficer && origObj) {
+        if (curQtyCheck !== asalQty || Math.abs(curHargaCheck - asalHarga) > 0.01 || (curItemCheck && curItemCheck !== asalItem)) {
+          pernahDipinda = true;
+        }
+      }
+      if (curDecCheck === 'TIDAK_SOKONG') {
+        pernahDitolak = true;
+      }
+
+      // Bina lencana visual pada lajur melekat (Sticky column kiri)
+      let lencanaStatusItem = '';
+      let styleBorderKiri = '';
+
+      if (isAddedByOfficer) {
+        lencanaStatusItem = `<span class="badge bg-primary-subtle text-primary border border-primary-subtle d-inline-block mt-1" style="font-size:0.65rem;"><i class="bi bi-plus-circle-fill me-1"></i>+ Item Baharu (${it.createdBy})</span>`;
+        styleBorderKiri = 'border-left: 4px solid #0d6efd !important;';
+      } else if (pernahDitolak) {
+        lencanaStatusItem = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-block mt-1" style="font-size:0.65rem;"><i class="bi bi-x-circle-fill me-1"></i>Ada Penolakan</span>`;
+        styleBorderKiri = 'border-left: 4px solid #dc3545 !important;';
+      } else if (pernahDipinda) {
+        lencanaStatusItem = `<span class="badge bg-warning-subtle text-dark border border-warning-subtle d-inline-block mt-1" style="font-size:0.65rem;"><i class="bi bi-pencil-fill me-1"></i>Dipinda</span>`;
+        styleBorderKiri = 'border-left: 4px solid #fd7e14 !important;';
+      }
+
+      let rowHtml = `<tr style="${pernahDipinda && !pernahDitolak ? 'background-color: #fffdfa;' : ''}">
+        <td style="${sticky}left:0;text-align:center;border:1px solid #dee2e6;padding:6px;min-width:36px;${styleBorderKiri}">
           ${idx + 1}
           ${isCreator
             ? `<button type="button"
-                class="btn btn-sm btn-outline-danger p-0 px-1 border-0"
+                class="btn btn-sm btn-outline-danger p-0 px-1 border-0 ms-1"
                 onclick="padamItemBaharu(${idx})" title="Padam Item">
                 <i class="bi bi-x-circle-fill"></i></button>`
             : ''}
         </td>
         <td style="${sticky}left:36px;text-align:left;font-weight:600;border:1px solid #dee2e6;padding:6px 10px;min-width:220px;max-width:250px;white-space:normal;word-wrap:break-word;">
           ${asalItem} ${btnGambarHtml}
+          ${lencanaStatusItem ? `<br>${lencanaStatusItem}` : ''}
         </td>
         <!-- LAJUR FIZIKAL SEBAB MOHON (PEMOHON) -->
         <td style="background:#fcfcfc;border:1px solid #dee2e6;padding:6px 8px;font-size:0.75rem;min-width:160px;max-width:220px;white-space:normal;word-wrap:break-word;color:#444;">
@@ -4174,8 +4229,10 @@
           ${asalJumlah}
         </td>`;
 
+      // =====================================================================
+      // 2. GELUNG PENILAIAN MENGIKUT PERANAN PEGAWAI (rolesArr.forEach)
+      // =====================================================================
       rolesArr.forEach((rl, ri) => {
-
         // Sembunyikan lajur Urusetia HQ sepenuhnya dari paparan jadual
         if (rl === 'Urusetia HQ') return;
 
@@ -4213,7 +4270,6 @@
         const bolehEditItem = isCurrent && !isItemDitolakAwal && !isGlobalLocked && !isTidakDisokongMode && (r !== 'Jawatan Kuasa SPeKS Induk');
         const dis = bolehEditItem ? '' : 'disabled';
 
-        // ISYTIHARKAN SEKALI SAHAJA DI SINI
         const roleSnap = snapshots[rl];
         const snap     = roleSnap ? roleSnap[idx] : null;
 
@@ -4290,6 +4346,18 @@
           sokonganCellHtml = '<span class="text-muted small">—</span>';
         }
 
+        // =====================================================================
+        // KESAN PERUBAHAN SPESIFIK PADA PERINGKAT INI BERBANDING PEMOHON ASAL
+        // =====================================================================
+        const isQtyChanged = (!isAddedByOfficer && origObj && displayQty !== asalQty);
+        const isHargaChanged = (!isAddedByOfficer && origObj && Math.abs(displayHarga - asalHarga) > 0.01);
+        const isNameChanged = (!isAddedByOfficer && origObj && displayItem !== '-' && displayItem !== asalItem);
+
+        // Gaya sorotan (highlight) khas jika ada perubahan
+        const highlightStyle = 'background-color: #fff8e6 !important; border: 1.5px solid #fd7e14 !important; font-weight: bold; color: #b45309;';
+        const labelAsalQty = isQtyChanged ? `<span class="badge bg-warning-subtle text-dark border border-warning" style="font-size:0.62rem; display:block; margin-top:2px;" title="Nilai asal pemohon">Asal: ${asalQty}</span>` : '';
+        const labelAsalHarga = isHargaChanged ? `<span class="badge bg-warning-subtle text-dark border border-warning" style="font-size:0.62rem; display:block; margin-top:2px;" title="Harga asal pemohon">Asal: RM ${formatDuit(asalHarga)}</span>` : '';
+
         let bg;
         if (isCurrent)   bg = 'background:#fff3cd;outline:1.5px solid #ffc107;';
         else if (isPast) bg = `background:${roleBgLight[rl] || '#f8f9fa'};`;
@@ -4300,24 +4368,26 @@
             <input type="text"
               class="form-control form-control-sm input-item-${idx}-${rc}"
               value="${itemVal}" ${dis}
-              style="font-size:0.75rem;padding:2px 6px;min-width:160px;">
+              style="font-size:0.75rem;padding:2px 6px;min-width:160px; ${isNameChanged ? highlightStyle : ''}">
           </td>
-          <td style="${bg}border:1px solid #dee2e6;padding:3px;">
+          <td style="${bg}border:1px solid #dee2e6;padding:3px;text-align:center;">
             <input type="number"
               class="form-control form-control-sm text-center input-qty-${idx}-${rc}"
               value="${displayQty}" ${dis}
               oninput="kiraSubtotalPeringkat(${idx}, '${rl}')"
-              style="font-size:0.75rem;padding:2px 4px;width:58px;min-width:0;">
+              style="font-size:0.75rem;padding:2px 4px;width:58px;min-width:0;margin:0 auto; ${isQtyChanged ? highlightStyle : ''}">
+            ${labelAsalQty}
           </td>
-          <td style="${bg}border:1px solid #dee2e6;padding:3px;">
+          <td style="${bg}border:1px solid #dee2e6;padding:3px;text-align:center;">
             <input type="number" step="0.01"
               class="form-control form-control-sm text-center input-harga-${idx}-${rc}"
               value="${hargaFmt}" ${dis}
               oninput="kiraSubtotalPeringkat(${idx}, '${rl}')"
-              style="font-size:0.75rem;padding:2px 4px;width:82px;min-width:0;">
+              style="font-size:0.75rem;padding:2px 4px;width:82px;min-width:0;margin:0 auto; ${isHargaChanged ? highlightStyle : ''}">
+            ${labelAsalHarga}
           </td>
           <td style="${bg}border:1px solid #dee2e6;padding:4px;text-align:center;
-                      font-weight:700;color:#198754;font-size:0.75rem;"
+                      font-weight:700;color:${(isQtyChanged || isHargaChanged) ? '#b45309' : '#198754'};font-size:0.75rem;"
               class="subtotal-${idx}-${rc}">
             RM ${jumlahFmt}
           </td>
@@ -4331,11 +4401,11 @@
               placeholder="Catatan..."
               style="font-size:0.75rem;padding:2px 6px;min-width:120px;">
           </td>`;
-      });
+      }); // Penutup rolesArr.forEach
 
       rowHtml += '</tr>';
       tbodyHtml += rowHtml;
-    });
+    }); // Penutup globalListItems.forEach
 
     // ── PENJANAAN FOOTER (TFOOT) DINAMIK BAGI SEMUA PERINGKAT ──
     const footerRolesHtml = rolesArr.map(rl => {
@@ -4357,7 +4427,6 @@
         <tr style="background:#f8f9fa; font-size:0.8rem; font-weight:700;">
           <td style="position:sticky; left:0; z-index:3; background:#f8f9fa; text-align:center; border:1px solid #dee2e6; padding:6px;">—</td>
           <td style="position:sticky; left:36px; z-index:3; background:#f8f9fa; text-align:right; font-weight:bold; border:1px solid #dee2e6; padding:6px 10px;">JUMLAH KESELURUHAN (RM):</td>
-          <!-- Diselaraskan kepada colspan="3" (Sebab Mohon, Bil, Harga) -->
           <td colspan="3" style="background:#f8f9fa; border:1px solid #dee2e6;"></td>
           <td id="jumlah-asal" style="background:#f8f9fa; border:1px solid #dee2e6; text-align:center; font-weight:800; color:#0d6efd; padding:6px;">RM 0.00</td>
           ${footerRolesHtml}
