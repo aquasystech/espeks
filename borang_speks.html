@@ -775,34 +775,34 @@
 
           <!-- 2. DOKUMEN TANAH (BERCABANG) -->
           <div style="margin-bottom: 15px; padding: 15px; background-color: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px;">
-              <label style="font-weight: bold; font-size: 14px; color: #005c99; margin-bottom: 10px; display: block; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">2. Dokumen Tanah</label>
+              <label style="font-weight: bold; font-size: 14px; color: #005c99; margin-bottom: 10px; display: block; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">
+                  2. Dokumen Tanah <span style="color: red; font-weight: bold;">* (Wajib)</span>
+              </label>
               
               <!-- 2.1 GERAN TANAH -->
               <div class="dokumen-item" style="margin-bottom: 10px; padding-left: 10px;">
-                  <label style="font-weight: normal; font-size: 13px; color: #333; margin-bottom: 4px; display: block;">
-                    2.1 Geran Tanah <span style="color: red; font-weight: bold;">* (Wajib)</span>
-                  </label>
-                  <input type="file" id="file_geran_tanah" name="dokumenUpload" class="file-input">
+                  <label style="font-weight: normal; font-size: 13px; color: #333; margin-bottom: 4px; display: block;">2.1 Geran Tanah</label>
+                  <input type="file" id="file_geran_tanah" name="dokumenUpload" class="file-input file-tanah">
               </div>
 
               <div class="dokumen-item" style="margin-bottom: 10px; padding-left: 10px;">
                   <label style="font-weight: normal; font-size: 13px; color: #555; margin-bottom: 4px; display: block;">2.2 Dokumen TOL / LPS (Jika Berkenaan)</label>
-                  <input type="file" name="dokumenUpload" class="file-input">
+                  <input type="file" name="dokumenUpload" class="file-input file-tanah">
               </div>
 
               <div class="dokumen-item" style="margin-bottom: 10px; padding-left: 10px;">
                   <label style="font-weight: normal; font-size: 13px; color: #555; margin-bottom: 4px; display: block;">2.3 Resit Permohonan TOL / LPS (Jika Berkenaan)</label>
-                  <input type="file" name="dokumenUpload" class="file-input">
+                  <input type="file" name="dokumenUpload" class="file-input file-tanah">
               </div>
 
               <div class="dokumen-item" style="margin-bottom: 10px; padding-left: 10px;">
                   <label style="font-weight: normal; font-size: 13px; color: #555; margin-bottom: 4px; display: block;">2.4 Perjanjian Sewa / Guna Tanah (Jika Berkenaan)</label>
-                  <input type="file" name="dokumenUpload" class="file-input">
+                  <input type="file" name="dokumenUpload" class="file-input file-tanah">
               </div>
 
               <div class="dokumen-item" style="margin-bottom: 5px; padding-left: 10px;">
                   <label style="font-weight: normal; font-size: 13px; color: #555; margin-bottom: 4px; display: block;">2.5 Surat Kebenaran Menggunakan Tanah (Jika Berkenaan)</label>
-                  <input type="file" name="dokumenUpload" class="file-input">
+                  <input type="file" name="dokumenUpload" class="file-input file-tanah">
               </div>
           </div>
 
@@ -1579,23 +1579,54 @@
     
     // 1. SEMAKAN BUKAN DRAF (SEMAKAN DOKUMEN WAJIB UNTUK HANTAR PERMOHONAN)
     if (!isDraf) {
-        // Senarai fail wajib berserta label untuk dipaparkan dalam pop-up
-        const dokumenWajib = [
-            { id: 'file_kp_ssm', nama: '1. Salinan Kad Pengenalan / SSM' },
-            { id: 'file_geran_tanah', nama: '2.1 Geran Tanah' },
-            { id: 'file_rancangan_perniagaan', nama: '3. Rancangan Perniagaan' },
-            { id: 'file_gambar_projek', nama: '4. Gambar Projek Ternakan' }
-        ];
-
         let failBelumMuatNaik = [];
 
-        dokumenWajib.forEach(doc => {
-            const inputEl = document.getElementById(doc.id);
-            // Semak sekiranya fail baru tidak dipilih DAN tiada fail lama dalam draf bagi slot ini
-            if (inputEl && (!inputEl.files || inputEl.files.length === 0)) {
-                failBelumMuatNaik.push(doc.nama);
+        // 1. Salinan Kad Pengenalan / SSM (Wajib)
+        const fileKP = document.getElementById('file_kp_ssm');
+        const hasKP = (fileKP && fileKP.files && fileKP.files.length > 0) || 
+                      (existingDraftFiles && existingDraftFiles.some(f => {
+                          const fn = (f.name || '').toLowerCase();
+                          return fn.includes('kad pengenalan') || fn.includes('ssm');
+                      }));
+        if (!hasKP) {
+            failBelumMuatNaik.push('1. Salinan Kad Pengenalan / SSM');
+        }
+
+        // 2. Dokumen Tanah (Wajib sekurang-kurangnya SATU dokumen daripada 2.1 hingga 2.5)
+        let hasTanah = false;
+        document.querySelectorAll('.file-tanah').forEach(input => {
+            if (input.files && input.files.length > 0) {
+                hasTanah = true;
             }
         });
+        if (!hasTanah && existingDraftFiles && existingDraftFiles.some(f => {
+            const fn = (f.name || '').toLowerCase();
+            return fn.includes('tanah') || fn.includes('geran') || fn.includes('tol') || fn.includes('lps') || fn.includes('sewa');
+        })) {
+            hasTanah = true;
+        }
+        if (!hasTanah) {
+            failBelumMuatNaik.push('2. Dokumen Tanah (Wajib muat naik sekurang-kurangnya satu dokumen tanah: Geran, TOL/LPS, Resit, Sewa atau Kebenaran)');
+        }
+
+        // 3. Rancangan Perniagaan (Wajib)
+        const fileRP = document.getElementById('file_rancangan_perniagaan');
+        const hasRP = (fileRP && fileRP.files && fileRP.files.length > 0) || 
+                      (existingDraftFiles && existingDraftFiles.some(f => (f.name || '').toLowerCase().includes('rancangan perniagaan')));
+        if (!hasRP) {
+            failBelumMuatNaik.push('3. Rancangan Perniagaan');
+        }
+
+        // 4. Gambar Projek Ternakan (Wajib)
+        const fileGP = document.getElementById('file_gambar_projek');
+        const hasGP = (fileGP && fileGP.files && fileGP.files.length > 0) || 
+                      (existingDraftFiles && existingDraftFiles.some(f => {
+                          const fn = (f.name || '').toLowerCase();
+                          return fn.includes('gambar projek') || fn.includes('projek ternakan');
+                      }));
+        if (!hasGP) {
+            failBelumMuatNaik.push('4. Gambar Projek Ternakan');
+        }
 
         // JIKA ADA DOKUMEN WAJIB YANG BELUM DIMUAT NAIK, PAPARKAN POPUP
         if (failBelumMuatNaik.length > 0) {
@@ -1868,27 +1899,6 @@
         });
     } else {
         hantarKeServer(formData, isDraf, progressInterval, kemaskiniProgressModal);
-    }
-
-    if (!isDraf) {
-        const inputWajib = document.querySelectorAll('#senaraiDokumen input[required]');
-        let adaFailKosong = false;
-
-        inputWajib.forEach(input => {
-            if (!input.files || input.files.length === 0) {
-                adaFailKosong = true;
-            }
-        });
-
-        if (adaFailKosong) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Dokumen Wajib Belum Dimuat Naik',
-                text: 'Sila pastikan Salinan KP/SSM, Geran Tanah, Rancangan Perniagaan, dan Gambar Projek telah dimuat naik.',
-                confirmButtonColor: '#dc3545'
-            });
-            return; // Sekat penghantaran
-        }
     }
 }
 
