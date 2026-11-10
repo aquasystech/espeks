@@ -4151,7 +4151,7 @@
       let pernahDipinda = false;
       let pernahDitolak = !!(it.ditolakAwal);
 
-      // Semak sama ada mana-mana peringkat telah meminda nilai berbanding asal pemohon
+      // Semak HANYA pada peringkat yang telah benar-benar membuat penilaian
       rolesArr.forEach(roleName => {
         const snapItem = (window.globalSnapshots && window.globalSnapshots[roleName]) ? window.globalSnapshots[roleName][idx] : null;
         if (snapItem) {
@@ -4171,7 +4171,7 @@
         }
       });
 
-      // Semak juga jika peranan semasa sedang membuat pindaan aktif di borang
+      // Semak juga jika peranan aktif semasa sedang mengubah nilai di borang
       const curQtyCheck = parseFloat(it.qtyCurrent ?? it.qty ?? 0);
       const curHargaCheck = parseFloat(it.hargaCurrent ?? it.harga ?? 0);
       const curItemCheck = String(it.itemCurrent ?? it.item ?? '').replace(/\[Sebab:\s*.*?\]/gi, '').trim();
@@ -4243,19 +4243,17 @@
           return;
         }
 
-        // LOGIK KHAS: Jika Urusetia HQ log masuk, lajur JK SPeKS Induk dijadikan lajur aktif ("isCurrent")
-        // Jika KCAN PPN berada dalam mod persidangan negeri, lajur aktif dialihkan ke JK SPeKS Negeri
+        // Semak sama ada lajur ini adalah peringkat aktif semasa
         const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
         const isCurrent = isUrusetiaNegeri 
           ? (rl === 'Jawatan Kuasa SPeKS Negeri')
           : ((rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk'));
         
-        // Kira peranan sebelum (past)
+        // Semak sama ada lajur ini adalah peringkat sebelum (past) mengikut hierarki
         let isPast = false;
         if (r === 'Urusetia HQ') {
           isPast = (ri < rolesArr.indexOf('Jawatan Kuasa SPeKS Induk') && rl !== 'Jawatan Kuasa SPeKS Induk');
         } else if (isUrusetiaNegeri) {
-          // Bagi KCAN PPN dalam mod persidangan, lajur KCAN PPN dianggap peringkat lalu (past)
           isPast = (ri < rolesArr.indexOf('Jawatan Kuasa SPeKS Negeri') && rl !== 'Jawatan Kuasa SPeKS Negeri');
         } else {
           isPast = (ri < currentRoleIdx);
@@ -4264,7 +4262,6 @@
         const rc = rl.replace(/\s+/g, '-');
         const isItemDitolakAwal = !!(it.ditolakAwal);
         
-        // Kunci input jika borang dikunci, peranan induk, atau permohonan dalam mod 'Tidak Disokong'
         const isGlobalLocked = (typeof window.evalIsLockedGlobal !== 'undefined') ? window.evalIsLockedGlobal : false;
         const isTidakDisokongMode = (typeof window.evalIsTidakDisokongGlobal !== 'undefined') ? window.evalIsTidakDisokongGlobal : false;
         const bolehEditItem = isCurrent && !isItemDitolakAwal && !isGlobalLocked && !isTidakDisokongMode && (r !== 'Jawatan Kuasa SPeKS Induk');
@@ -4272,6 +4269,12 @@
 
         const roleSnap = snapshots[rl];
         const snap     = roleSnap ? roleSnap[idx] : null;
+
+        // Semak tarikh pengesahan / sokongan untuk pastikan ia benar-benar telah dinilai
+        const hasTarikhPenilaian = !!(activeApp && (activeApp['Tarikh Sokong (' + rl + ')'] || (rl === 'Jawatan Kuasa SPeKS Induk' && (activeApp['Tarikh Pengesahan Jawatan Kuasa SPeKS Induk'] || activeApp['Tarikh Penilaian Induk']))));
+        
+        // Peringkat dikira SUDAH DINILAI hanya jika ia adalah peringkat lalu DAN mempunyai rekod snapshot atau tarikh penilaian
+        const isEvaluatedPast = isPast && (!!snap || hasTarikhPenilaian);
 
         let displayItem, displayQty, displayHarga, displayCatatan;
 
@@ -4281,7 +4284,7 @@
           displayQty     = isItemDitolakAwal ? 0 : (it.qtyCurrent ?? it.qty ?? 0);
           displayHarga   = isItemDitolakAwal ? 0 : parseFloat(it.hargaCurrent ?? it.harga ?? 0);
           displayCatatan = it.catatanCurrent ?? it.catatan ?? '';
-        } else if (isPast) {
+        } else if (isEvaluatedPast) {
           if (snap) {
             displayItem    = snap.item    ?? '-';
             displayQty     = snap.qty     ?? 0;
@@ -4294,6 +4297,7 @@
             displayCatatan = '';
           }
         } else {
+          // Peringkat yang BELUM DINILAI / BELUM SAMPAI
           displayItem    = it.item   ?? '-';
           displayQty     = isItemDitolakAwal ? 0 : (it.qty ?? 0);
           displayHarga   = isItemDitolakAwal ? 0 : parseFloat(it.harga ?? 0);
@@ -4304,7 +4308,6 @@
         const itemVal    = String(displayItem    ?? '-').replace(/"/g, '&quot;');
         const catatanVal = String(displayCatatan ?? '').replace(/"/g, '&quot;');
 
-        // Kolum Jumlah: Sentiasa Bil x Harga dengan format koma & sen
         const itemSubtotal = parseFloat(displayQty || 0) * parseFloat(displayHarga || 0);
         const jumlahFmt = formatDuit(itemSubtotal);
 
@@ -4312,7 +4315,7 @@
         let currentDecision = '';
         if (isCurrent) {
           currentDecision = isItemDitolakAwal ? 'TIDAK_SOKONG' : (it.sokonganCurrent ?? it.sokongan ?? '');
-        } else if (isPast) {
+        } else if (isEvaluatedPast) {
           currentDecision = snap ? (snap.sokongan || (snap.sokong === true ? 'SOKONG' : snap.sokong === false ? 'TIDAK_SOKONG' : '')) : '';
         }
 
@@ -4334,7 +4337,7 @@
               '<option value="TIDAK_SOKONG" ' + (currentDecision === 'TIDAK_SOKONG' ? 'selected' : '') + ' style="color:#dc3545; font-weight:bold;">✕ Tidak Sokong</option>' +
               '</select>';
           }
-        } else if (isPast) {
+        } else if (isEvaluatedPast) {
           if (currentDecision === 'SOKONG') {
             sokonganCellHtml = '<span class="badge bg-success" style="font-size:0.7rem; padding:4px 8px;"><i class="bi bi-check-circle-fill me-1"></i>Sokong</span>';
           } else if (currentDecision === 'TIDAK_SOKONG') {
@@ -4343,25 +4346,30 @@
             sokonganCellHtml = '<span class="text-muted small">—</span>';
           }
         } else {
+          // Peringkat belum sampai / belum dinilai
           sokonganCellHtml = '<span class="text-muted small">—</span>';
         }
 
         // =====================================================================
-        // KESAN PERUBAHAN SPESIFIK PADA PERINGKAT INI BERBANDING PEMOHON ASAL
+        // SYARAT MUTLAK HIGHLIGHT:
+        // HANYA peringkat yang SEDANG AKTIF (isCurrent) ATAU TELAH SELESAI DINILAI (isEvaluatedPast).
+        // Peringkat yang BELUM DINILAI / BELUM SAMPAI TIDAK BOLEH DI-HIGHLIGHT SAMA SEKALI!
         // =====================================================================
-        const isQtyChanged = (!isAddedByOfficer && origObj && displayQty !== asalQty);
-        const isHargaChanged = (!isAddedByOfficer && origObj && Math.abs(displayHarga - asalHarga) > 0.01);
-        const isNameChanged = (!isAddedByOfficer && origObj && displayItem !== '-' && displayItem !== asalItem);
+        const bolehSemakHighlight = isCurrent || isEvaluatedPast;
 
-        // Gaya sorotan (highlight) khas jika ada perubahan
+        const isQtyChanged = bolehSemakHighlight && (!isAddedByOfficer && origObj && displayQty !== asalQty);
+        const isHargaChanged = bolehSemakHighlight && (!isAddedByOfficer && origObj && Math.abs(displayHarga - asalHarga) > 0.01);
+        const isNameChanged = bolehSemakHighlight && (!isAddedByOfficer && origObj && displayItem !== '-' && displayItem !== asalItem);
+
+        // Gaya sorotan (highlight) khas hanya jika ada perubahan pada peringkat yang sah
         const highlightStyle = 'background-color: #fff8e6 !important; border: 1.5px solid #fd7e14 !important; font-weight: bold; color: #b45309;';
         const labelAsalQty = isQtyChanged ? `<span class="badge bg-warning-subtle text-dark border border-warning" style="font-size:0.62rem; display:block; margin-top:2px;" title="Nilai asal pemohon">Asal: ${asalQty}</span>` : '';
         const labelAsalHarga = isHargaChanged ? `<span class="badge bg-warning-subtle text-dark border border-warning" style="font-size:0.62rem; display:block; margin-top:2px;" title="Harga asal pemohon">Asal: RM ${formatDuit(asalHarga)}</span>` : '';
 
         let bg;
-        if (isCurrent)   bg = 'background:#fff3cd;outline:1.5px solid #ffc107;';
-        else if (isPast) bg = `background:${roleBgLight[rl] || '#f8f9fa'};`;
-        else             bg = 'background:#f0f4ff;';
+        if (isCurrent)            bg = 'background:#fff3cd;outline:1.5px solid #ffc107;';
+        else if (isEvaluatedPast) bg = `background:${roleBgLight[rl] || '#f8f9fa'};`;
+        else                      bg = 'background:#f0f4ff;'; // Peringkat belum sampai / neutral
 
         rowHtml += `
           <td style="${bg}border:1px solid #dee2e6;padding:3px;">
