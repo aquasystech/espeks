@@ -10081,48 +10081,106 @@ let monthlyTrendChartInstance = null;
     if (!formTetapan) return;
 
     const negeri = stage === 'negeri' ? (currentUser.negeri || '') : '';
-    Swal.fire({ title: 'Menyediakan Draf...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-    google.script.run
-      .withSuccessHandler(res => {
-        Swal.close();
-        if (!res || !res.success) {
-          return Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal memuatkan draf jemputan.', 'error');
-        }
+    const teruskanSediaDrafEmel = () => {
+      Swal.fire({ title: 'Menyediakan Draf...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        jemputanMesyuaratSemasa = {
+      google.script.run
+        .withSuccessHandler(res => {
+          Swal.close();
+          if (!res || !res.success) {
+            return Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal memuatkan draf jemputan.', 'error');
+          }
+
+          jemputanMesyuaratSemasa = {
+            stage: stage,
+            meetingKey: res.meetingKey,
+            tarikhMesyuarat: formTetapan.tarikhMesyuarat,
+            negeri: negeri
+          };
+
+          document.getElementById('jemputanNamaMesyuarat').innerText = res.meetingKey || '-';
+          document.getElementById('jemputanTarikhDisplay').innerText = res.tarikhFormatted || formTetapan.tarikhMesyuarat;
+          document.getElementById('jemputanMasa').value = res.masaDefault || '9:30 Pagi';
+          document.getElementById('jemputanTempat').value = res.tempatDefault || '';
+          document.getElementById('jemputanSenaraiEmel').value = res.senaraiEmel || '';
+          document.getElementById('jemputanSubjek').value = res.subjek || '';
+          document.getElementById('jemputanKandungan').value = res.drafKandungan || '';
+
+          const failInput = document.getElementById('jemputanFail');
+          if (failInput) failInput.value = '';
+
+          const modalEl = document.getElementById('modalJemputanMesyuarat');
+          const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modalInstance.show();
+        })
+        .withFailureHandler(err => {
+          Swal.close();
+          Swal.fire('Ralat Pelayan', err.message, 'error');
+        })
+        .dapatkanDrafJemputanMesyuarat({
           stage: stage,
-          meetingKey: res.meetingKey,
+          bilNumber: formTetapan.bilNumber,
+          tahunMesyuarat: formTetapan.tahunMesyuarat,
           tarikhMesyuarat: formTetapan.tarikhMesyuarat,
           negeri: negeri
-        };
+        });
+    };
 
-        document.getElementById('jemputanNamaMesyuarat').innerText = res.meetingKey || '-';
-        document.getElementById('jemputanTarikhDisplay').innerText = res.tarikhFormatted || formTetapan.tarikhMesyuarat;
-        document.getElementById('jemputanMasa').value = res.masaDefault || '9:30 Pagi';
-        document.getElementById('jemputanTempat').value = res.tempatDefault || '';
-        document.getElementById('jemputanSenaraiEmel').value = res.senaraiEmel || '';
-        document.getElementById('jemputanSubjek').value = res.subjek || '';
-        document.getElementById('jemputanKandungan').value = res.drafKandungan || '';
+    // Semak integriti minit mesyuarat terdahulu (Bil. N - 1) jika memilih Bil. 2 ke atas
+    const nomborBilSemasa = parseInt(String(formTetapan.bilNumber).replace(/\D/g, ''), 10);
 
-        const failInput = document.getElementById('jemputanFail');
-        if (failInput) failInput.value = '';
+    if (nomborBilSemasa > 1) {
+      const nomborBilTerdahulu = `Bil. ${nomborBilSemasa - 1}`;
+      let prevBatchKey = '';
+      if (stage === 'negeri') {
+        prevBatchKey = `Mesyuarat Jawatan Kuasa SPeKS Negeri (${negeri}) ${nomborBilTerdahulu}/ ${formTetapan.tahunMesyuarat}`;
+      } else if (stage === 'pra') {
+        prevBatchKey = `Mesyuarat Jawatan Kuasa Pra SPeKS ${nomborBilTerdahulu}/ ${formTetapan.tahunMesyuarat}`;
+      } else {
+        prevBatchKey = `Mesyuarat Jawatan Kuasa SPeKS Induk ${nomborBilTerdahulu}/ ${formTetapan.tahunMesyuarat}`;
+      }
 
-        const modalEl = document.getElementById('modalJemputanMesyuarat');
-        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modalInstance.show();
-      })
-      .withFailureHandler(err => {
-        Swal.close();
-        Swal.fire('Ralat Pelayan', err.message, 'error');
-      })
-      .dapatkanDrafJemputanMesyuarat({
-        stage: stage,
-        bilNumber: formTetapan.bilNumber,
-        tahunMesyuarat: formTetapan.tahunMesyuarat,
-        tarikhMesyuarat: formTetapan.tarikhMesyuarat,
-        negeri: negeri
+      Swal.fire({
+        title: 'Menyemak Integriti Minit...',
+        text: 'Sistem sedang mengesahkan rekod minit mesyuarat terdahulu sebelum menjana jemputan.',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
       });
+
+      google.script.run
+        .withSuccessHandler(resMinit => {
+          if (!resMinit || !resMinit.sudahUpload) {
+            Swal.close();
+            const targetSectionMinit = stage === 'negeri' ? 'minit-negeri' : stage === 'pra' ? 'minit-pra' : 'minit-master';
+
+            return Swal.fire({
+              icon: 'error',
+              title: 'Sekatan Integriti Tadbir Urus',
+              html: `E-mel jemputan bagi <b>${escapeHtmlInduk(formTetapan.bilNumber)}/${escapeHtmlInduk(formTetapan.tahunMesyuarat)}</b> tidak boleh disediakan kerana fail Minit Mesyuarat bagi <b>${escapeHtmlInduk(nomborBilTerdahulu)}/${escapeHtmlInduk(formTetapan.tahunMesyuarat)}</b> masih <b>BELUM DIMUAT NAIK</b>.<br><br>` +
+                    `<span class="text-danger small">Sila muat naik minit mesyuarat terdahulu terlebih dahulu sebelum mengeluarkan jemputan mesyuarat berikutnya.</span>`,
+              showCancelButton: true,
+              confirmButtonColor: '#153f6a',
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: '<i class="bi bi-cloud-upload me-1"></i> Pergi Ke Muat Naik Minit',
+              cancelButtonText: 'Tutup'
+            }).then(result => {
+              if (result.isConfirmed) {
+                showSection(targetSectionMinit);
+              }
+            });
+          }
+
+          teruskanSediaDrafEmel();
+        })
+        .withFailureHandler(err => {
+          Swal.close();
+          Swal.fire('Ralat Pelayan', 'Gagal menyemak integriti minit: ' + err.message, 'error');
+        })
+        .semakStatusMinitBatch(prevBatchKey);
+    } else {
+      teruskanSediaDrafEmel();
+    }
   };
 
   window.hantarEmelJemputan = async function() {
