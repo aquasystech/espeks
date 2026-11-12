@@ -315,18 +315,15 @@
             </button>
 
             <div class="dropdown-divider"></div>
-            <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 2: Persidangan &amp; Kewangan</div>
-            <button class="dropdown-item nav-pill-btn text-success fw-bold" id="btn-analisis-peruntukan" onclick="showSection('analisis-peruntukan')">
-              <i class="bi bi-cash-coin me-2"></i> 3. Analisis Peruntukan Kewangan
-            </button>
+            <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 2: Persidangan</div>
             <button class="dropdown-item nav-pill-btn fw-bold" id="btn-penilaian-induk-batch" onclick="bukaHalamanBatch('induk')">
-              <i class="bi bi-clipboard2-check me-2"></i> 4. Penilaian JK SPeKS Induk
+              <i class="bi bi-clipboard2-check me-2"></i> 3. Penilaian JK SPeKS Induk
             </button>
 
             <div class="dropdown-divider"></div>
             <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 3: Pasca-Mesyuarat</div>
             <button class="dropdown-item nav-pill-btn" id="btn-upload-minit-master" onclick="showSection('minit-master')">
-              <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i> 5. Muat Naik Minit JK SPeKS Induk
+              <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i> 4. Muat Naik Minit JK SPeKS Induk
             </button>
           </div>
         </div>
@@ -6056,11 +6053,6 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
       const btnDirect = document.getElementById('btn-nav-analisis-induk');
       if (btnDirect) btnDirect.classList.add('active');
 
-      const btnMenuInduk = document.getElementById('btn-menu-jk-induk');
-      if (btnMenuInduk && currentUser && currentUser.role !== 'Jawatan Kuasa SPeKS Induk') {
-        btnMenuInduk.classList.add('active');
-      }
-
       // 6. Muat turun pilihan tahun dan jana data analisis
       sediakanDropdownTahunAnalisis();
       muatAnalisisPeruntukanHalaman();
@@ -9982,20 +9974,26 @@ let monthlyTrendChartInstance = null;
       const btnEmelPra = document.getElementById('btn-menu-emel-jemputan-pra');
 
       const btnDokumenPra = document.getElementById('btn-menu-dokumen-pra');
+      const btnNavAnalisis = document.getElementById('btn-nav-analisis-induk');
 
       if (roleClean === 'Urusetia HQ') {
+        if (btnNavAnalisis) btnNavAnalisis.style.display = 'inline-flex';
         if (menuInduk) menuInduk.style.display = 'block';
         if (menuPra) menuPra.style.display = 'block';
         if (btnPenilaianPra) btnPenilaianPra.style.display = 'block';
         if (btnEmelInduk) btnEmelInduk.style.display = 'block';
         if (btnEmelPra) btnEmelPra.style.display = 'block';
         if (btnDokumenPra) btnDokumenPra.style.display = 'block';
+      } else if (roleClean === 'Jawatan Kuasa SPeKS Induk') {
+        if (btnNavAnalisis) btnNavAnalisis.style.display = 'inline-flex';
       } else if (roleClean === 'Jawatan Kuasa Pra SPeKS') {
+        if (btnNavAnalisis) btnNavAnalisis.style.display = 'none';
         if (menuPra) menuPra.style.display = 'block';
         if (btnPenilaianPra) btnPenilaianPra.style.display = 'block';
         if (btnEmelPra) btnEmelPra.style.display = 'none';
         if (btnDokumenPra) btnDokumenPra.style.display = 'none';
       } else {
+        if (btnNavAnalisis) btnNavAnalisis.style.display = 'none';
         if (btnEmelInduk) btnEmelInduk.style.display = 'none';
         if (btnEmelPra) btnEmelPra.style.display = 'none';
       }
