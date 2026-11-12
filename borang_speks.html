@@ -806,10 +806,10 @@
               </div>
           </div>
 
-          <!-- 3. RANCANGAN PERNIAGAAN (WAJIB) -->
+          <!-- 3. RANCANGAN PERNIAGAAN / PERAKUAN POTENSI PENTERNAK (WAJIB) -->
           <div class="dokumen-item" style="margin-bottom: 15px;">
-              <label style="font-weight: bold; font-size: 13px; color: #2c3e50; margin-bottom: 4px; display: block;">
-                3. Rancangan Perniagaan <span style="color: red; font-weight: bold;">* (Wajib)</span>
+              <label id="labelDokumen3" style="font-weight: bold; font-size: 13px; color: #2c3e50; margin-bottom: 4px; display: block;">
+                3. Perakuan Potensi Penternak <span style="color: red; font-weight: bold;">* (Wajib)</span>
               </label>
               <input type="file" id="file_rancangan_perniagaan" name="dokumenUpload" class="file-input">
           </div>
@@ -998,11 +998,13 @@
         const kontena = document.getElementById('kontenaOrangHubung');
         const lblNama = document.getElementById('labelNama');
         const lblNoKP = document.getElementById('labelNoKP');
+        const lblDokumen3 = document.getElementById('labelDokumen3');
 
         if (jenis.includes("Syarikat") || jenis.includes("Pertubuhan")) {
             if (kontena) kontena.style.display = "block";
             if (lblNama) lblNama.innerText = "Nama Syarikat / Pertubuhan:";
             if (lblNoKP) lblNoKP.innerText = "No SSM / Pendaftaran Syarikat:";
+            if (lblDokumen3) lblDokumen3.innerHTML = '3. Rancangan Perniagaan <span style="color: red; font-weight: bold;">* (Wajib)</span>';
         } else {
             if (kontena) {
                 kontena.style.display = "none";
@@ -1012,6 +1014,7 @@
             }
             if (lblNama) lblNama.innerText = "Nama Persendirian / Kumpulan:";
             if (lblNoKP) lblNoKP.innerText = "No Kad Pengenalan:";
+            if (lblDokumen3) lblDokumen3.innerHTML = '3. Perakuan Potensi Penternak <span style="color: red; font-weight: bold;">* (Wajib)</span>';
         }
     }
 
@@ -1609,12 +1612,17 @@
             failBelumMuatNaik.push('2. Dokumen Tanah (Wajib muat naik sekurang-kurangnya satu dokumen tanah: Geran, TOL/LPS, Resit, Sewa atau Kebenaran)');
         }
 
-        // 3. Rancangan Perniagaan (Wajib)
+        // 3. Rancangan Perniagaan / Perakuan Potensi Penternak (Wajib)
         const fileRP = document.getElementById('file_rancangan_perniagaan');
         const hasRP = (fileRP && fileRP.files && fileRP.files.length > 0) || 
-                      (existingDraftFiles && existingDraftFiles.some(f => (f.name || '').toLowerCase().includes('rancangan perniagaan')));
+                      (existingDraftFiles && existingDraftFiles.some(f => {
+                          const fn = (f.name || '').toLowerCase();
+                          return fn.includes('rancangan perniagaan') || fn.includes('perakuan potensi penternak');
+                      }));
         if (!hasRP) {
-            failBelumMuatNaik.push('3. Rancangan Perniagaan');
+            const jenisPemohonVal = document.getElementById('jenisPemohon')?.value || '';
+            const isSyarikatVal = jenisPemohonVal.includes('Syarikat') || jenisPemohonVal.includes('Pertubuhan');
+            failBelumMuatNaik.push(isSyarikatVal ? '3. Rancangan Perniagaan' : '3. Perakuan Potensi Penternak');
         }
 
         // 4. Gambar Projek Ternakan (Wajib)
@@ -1732,7 +1740,9 @@
             } else if (input.id === 'file_geran_tanah') {
                 tagNama = 'Geran Tanah';
             } else if (input.id === 'file_rancangan_perniagaan') {
-                tagNama = 'Rancangan Perniagaan';
+                const jenisPemohonVal = document.getElementById('jenisPemohon')?.value || '';
+                const isSyarikatVal = jenisPemohonVal.includes('Syarikat') || jenisPemohonVal.includes('Pertubuhan');
+                tagNama = isSyarikatVal ? 'Rancangan Perniagaan' : 'Perakuan Potensi Penternak';
             } else if (input.id === 'file_gambar_projek') {
                 tagNama = 'Gambar Projek Ternakan';
             } else if (input.id === 'file_borang_manual') {
