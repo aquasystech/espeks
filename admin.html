@@ -321,6 +321,9 @@
             <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-induk" onclick="bukaJemputanMesyuaratMenu('induk')">
               <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> Emel Jemputan Mesyuarat
             </button>
+            <button class="dropdown-item nav-pill-btn text-primary fw-bold" id="btn-menu-dokumen-induk" onclick="bukaModalDokumenMesyuarat('induk')">
+              <i class="bi bi-folder-plus me-2"></i> Pengurusan Dokumen Mesyuarat
+            </button>      
           </div>
         </div>
 
@@ -341,6 +344,9 @@
             <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-negeri" onclick="bukaJemputanMesyuaratNegeriMenu()">
               <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> Emel Jemputan Mesyuarat
             </button>
+            <button class="dropdown-item nav-pill-btn text-primary fw-bold" id="btn-menu-dokumen-negeri" onclick="bukaModalDokumenMesyuarat('negeri')">
+              <i class="bi bi-folder-plus me-2"></i> Pengurusan Dokumen Mesyuarat
+            </button>
           </div>
         </div>
 
@@ -359,6 +365,9 @@
             <div class="dropdown-divider"></div>
             <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-pra" onclick="bukaJemputanMesyuaratMenu('pra')">
               <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> Emel Jemputan Mesyuarat
+            </button>
+            <button class="dropdown-item nav-pill-btn text-primary fw-bold" id="btn-menu-dokumen-pra" onclick="bukaModalDokumenMesyuarat('pra')">
+              <i class="bi bi-folder-plus me-2"></i> Pengurusan Dokumen Mesyuarat
             </button>
           </div>
         </div>
@@ -1072,6 +1081,89 @@
             </button>
           </div>
 
+        </div>
+      </div>
+    </div>
+    <!-- MODAL PENGURUSAN DOKUMEN & KERTAS KERJA MESYUARAT -->
+    <div class="modal fade" id="modalDokumenMesyuarat" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+          <div class="modal-header bg-gradient bg-dark text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <div class="p-2 bg-white bg-opacity-20 rounded-3">
+                <i class="bi bi-folder-symlink-fill fs-5 text-warning"></i>
+              </div>
+              <div>
+                <h6 class="modal-title fw-bold mb-0">Pengurusan Dokumen & Kertas Kerja Mesyuarat</h6>
+                <small class="text-white-50" style="font-size:0.75rem;">Muat naik dokumen pada bila-bila masa; ahli jemputan mengaksesnya melalui pautan dalam e-mel</small>
+              </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+          </div>
+
+          <div class="modal-body p-4 bg-light">
+            <!-- PILIHAN PERSIDANGAN -->
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-secondary mb-1">Pilih Persidangan (Dari Rekod Jemputan) <span class="text-danger">*</span></label>
+              <select id="dokumenMesyuaratSelect" class="form-select form-select-sm shadow-sm fw-bold text-primary" onchange="pilihMesyuaratUntukDokumen()">
+                <option value="">Memuatkan senarai persidangan...</option>
+              </select>
+              <small class="text-muted d-block mt-1" style="font-size:0.72rem;">
+                *Hanya mesyuarat yang telah dihantar e-mel jemputannya akan tersenarai di sini.
+              </small>
+            </div>
+
+            <!-- PAUTAN PORTAL DOKUMEN UNTUK SEMAKAN / SALINAN -->
+            <div id="boxPautanDokumenMesyuarat" class="mb-3" style="display:none;">
+              <label class="form-label small fw-bold text-secondary mb-1">Pautan Portal Dokumen (Dihantar dalam E-mel Jemputan)</label>
+              <div class="input-group input-group-sm">
+                <input type="text" id="inputPautanDokumenMesyuarat" class="form-control bg-white text-muted" readonly>
+                <button type="button" class="btn btn-outline-primary fw-bold" onclick="salinPautanDokumenMesyuarat()">
+                  <i class="bi bi-clipboard me-1"></i> Salin Pautan
+                </button>
+              </div>
+            </div>
+
+            <!-- RUANGAN MUAT NAIK FAIL BAHARU -->
+            <div id="boxUploadDokumenMesyuarat" class="card border p-3 mb-3 bg-white shadow-sm" style="display:none;">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-cloud-upload-fill text-primary me-1"></i> Muat Naik Dokumen / Kertas Kerja Baharu
+              </label>
+              <div class="d-flex gap-2 flex-wrap">
+                <input type="file" id="inputFailDokumenMesyuarat" class="form-control form-control-sm flex-grow-1" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*">
+                <button type="button" class="btn btn-success btn-sm fw-bold px-3" onclick="prosesMuatNaikDokumenMesyuarat()">
+                  <i class="bi bi-upload me-1"></i> Muat Naik
+                </button>
+              </div>
+              <small class="text-muted mt-1" style="font-size:0.72rem;">Boleh pilih lebih daripada satu fail (PDF, Word, Excel, PowerPoint, Imej). Maksimum 15MB sekali muat naik.</small>
+            </div>
+
+            <!-- SENARAI FAIL SEDIA ADA -->
+            <div class="card border bg-white shadow-sm">
+              <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                <span class="small fw-bold text-dark"><i class="bi bi-files me-1 text-primary"></i> Dokumen Tersedia dalam Ruangan Ini</span>
+                <button type="button" class="btn btn-light btn-sm border py-0 px-2" onclick="muatSenaraiDokumenMesyuaratAdmin()" title="Muat Semula">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+              <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                <table class="table table-sm table-hover align-middle mb-0 small">
+                  <thead class="table-light sticky-top">
+                    <tr>
+                      <th class="text-center" style="width:40px;">Bil</th>
+                      <th>Nama Dokumen</th>
+                      <th class="text-center" style="width:85px;">Saiz</th>
+                      <th class="text-center" style="width:130px;">Tarikh Muat Naik</th>
+                      <th class="text-center" style="width:110px;">Tindakan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyDokumenMesyuaratAdmin">
+                    <tr><td colspan="5" class="text-center text-muted py-3">Sila pilih persidangan di atas.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -10020,6 +10112,195 @@ let monthlyTrendChartInstance = null;
         files: filesArr
       });
   };
+
+  // =========================================================================
+  // PENGURUSAN DOKUMEN & KERTAS KERJA MESYUARAT (ADMIN PORTAL)
+  // =========================================================================
+  let dokumenMesyuaratStageSemasa = 'induk';
+
+  function bukaModalDokumenMesyuarat(stage) {
+    if (!currentUser) return;
+
+    const role = String(currentUser.role || '').trim();
+    if (stage === 'negeri' && role !== 'KCAN PPN') {
+      return Swal.fire('Akses Ditolak', 'Hanya KCAN PPN dibenarkan menguruskan dokumen mesyuarat negeri.', 'error');
+    }
+    if ((stage === 'pra' || stage === 'induk') && role !== 'Urusetia HQ') {
+      return Swal.fire('Akses Ditolak', 'Hanya Urusetia HQ dibenarkan menguruskan dokumen persidangan ini.', 'error');
+    }
+
+    dokumenMesyuaratStageSemasa = stage;
+    const selectEl = document.getElementById('dokumenMesyuaratSelect');
+    const tbody = document.getElementById('tbodyDokumenMesyuaratAdmin');
+    selectEl.innerHTML = '<option value="">Memuatkan senarai persidangan...</option>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Memuatkan...</td></tr>';
+    document.getElementById('boxPautanDokumenMesyuarat').style.display = 'none';
+    document.getElementById('boxUploadDokumenMesyuarat').style.display = 'none';
+
+    const modalEl = document.getElementById('modalDokumenMesyuarat');
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (!res || !res.success || !res.meetings || res.meetings.length === 0) {
+          selectEl.innerHTML = '<option value="">-- Tiada Rekod Jemputan Mesyuarat Ditemui --</option>';
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-warning py-3">Sila hantar E-mel Jemputan Mesyuarat terlebih dahulu sebelum memuat naik dokumen.</td></tr>';
+          return;
+        }
+
+        selectEl.innerHTML = res.meetings.map(m =>
+          `<option value="${escapeAttrInduk(m.meetingKey)}">${escapeHtmlInduk(m.meetingKey)} (${escapeHtmlInduk(m.tarikh)})</option>`
+        ).join('');
+
+        pilihMesyuaratUntukDokumen();
+      })
+      .withFailureHandler(err => {
+        selectEl.innerHTML = '<option value="">Ralat memuatkan senarai</option>';
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .dapatkanSenaraiMesyuaratJemputan({
+        stage: stage,
+        negeri: stage === 'negeri' ? (currentUser.negeri || '') : ''
+      });
+  }
+
+  function pilihMesyuaratUntukDokumen() {
+    const meetingKey = document.getElementById('dokumenMesyuaratSelect')?.value || '';
+    if (!meetingKey) return;
+
+    const baseFrontend = window.location.href.split('?')[0].replace(/\/[^\/]*$/, '');
+    const fullLink = `${baseFrontend}/dokumen_mesyuarat.html?mesyuarat=${encodeURIComponent(meetingKey)}`;
+
+    document.getElementById('inputPautanDokumenMesyuarat').value = fullLink;
+    document.getElementById('boxPautanDokumenMesyuarat').style.display = 'block';
+    document.getElementById('boxUploadDokumenMesyuarat').style.display = 'block';
+
+    muatSenaraiDokumenMesyuaratAdmin();
+  }
+
+  function salinPautanDokumenMesyuarat() {
+    const input = document.getElementById('inputPautanDokumenMesyuarat');
+    if (!input || !input.value) return;
+    navigator.clipboard.writeText(input.value);
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Pautan disalin!', showConfirmButton: false, timer: 1500 });
+  }
+
+  function muatSenaraiDokumenMesyuaratAdmin() {
+    const meetingKey = document.getElementById('dokumenMesyuaratSelect')?.value || '';
+    const tbody = document.getElementById('tbodyDokumenMesyuaratAdmin');
+    if (!meetingKey || !tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Memuatkan senarai dokumen...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (!res || !res.success) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">${escapeHtmlInduk(res ? res.message : 'Ralat memuatkan fail.')}</td></tr>`;
+          return;
+        }
+
+        const files = res.files || [];
+        if (files.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Belum ada dokumen dimuat naik bagi persidangan ini.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = files.map((f, idx) => `
+          <tr>
+            <td class="text-center fw-bold">${idx + 1}</td>
+            <td class="fw-semibold text-dark">${escapeHtmlInduk(f.name)}</td>
+            <td class="text-center text-muted">${escapeHtmlInduk(f.size)}</td>
+            <td class="text-center text-muted">${escapeHtmlInduk(f.updated)}</td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm">
+                <a href="${escapeAttrInduk(f.url)}" target="_blank" class="btn btn-outline-primary" title="Lihat Fail"><i class="bi bi-eye"></i></a>
+                <button type="button" class="btn btn-outline-danger" onclick="padamDokumenMesyuaratAdmin('${escapeAttrInduk(f.id)}', '${escapeAttrInduk(f.name)}')" title="Padam Fail"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      })
+      .withFailureHandler(err => {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">${escapeHtmlInduk(err.message)}</td></tr>`;
+      })
+      .dapatkanDokumenMesyuaratAdmin({ meetingKey: meetingKey });
+  }
+
+  async function prosesMuatNaikDokumenMesyuarat() {
+    const meetingKey = document.getElementById('dokumenMesyuaratSelect')?.value || '';
+    const fileInput = document.getElementById('inputFailDokumenMesyuarat');
+    if (!meetingKey) return Swal.fire('Perhatian', 'Sila pilih persidangan terlebih dahulu.', 'warning');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      return Swal.fire('Tiada Fail', 'Sila pilih sekurang-kurangnya satu fail untuk dimuat naik.', 'warning');
+    }
+
+    const filesArr = [];
+    let totalSize = 0;
+    for (const f of fileInput.files) {
+      totalSize += f.size;
+      if (totalSize > 15 * 1024 * 1024) {
+        return Swal.fire('Saiz Fail Terlalu Besar', 'Jumlah keseluruhan muat naik tidak boleh melebihi 15MB sekali gus.', 'warning');
+      }
+      const b64 = await toBase64(f);
+      filesArr.push({ name: f.name, data: b64 });
+    }
+
+    Swal.fire({ title: 'Memuat Naik Dokumen...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close();
+        if (res && res.success) {
+          fileInput.value = '';
+          Swal.fire('Berjaya!', res.message, 'success');
+          muatSenaraiDokumenMesyuaratAdmin();
+        } else {
+          Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal memuat naik dokumen.', 'error');
+        }
+      })
+      .withFailureHandler(err => {
+        Swal.close();
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .muatNaikDokumenMesyuarat({
+        role: currentUser.role,
+        meetingKey: meetingKey,
+        files: filesArr
+      });
+  }
+
+  function padamDokumenMesyuaratAdmin(fileId, fileName) {
+    Swal.fire({
+      title: 'Padam Dokumen?',
+      html: `Dokumen <b>${escapeHtmlInduk(fileName)}</b> akan dipadam dan tidak lagi kelihatan kepada ahli mesyuarat.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'Ya, Padam',
+      cancelButtonText: 'Batal'
+    }).then(result => {
+      if (!result.isConfirmed) return;
+      Swal.fire({ title: 'Memadam...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      google.script.run
+        .withSuccessHandler(res => {
+          Swal.close();
+          if (res && res.success) {
+            muatSenaraiDokumenMesyuaratAdmin();
+          } else {
+            Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal memadam dokumen.', 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.close();
+          Swal.fire('Ralat Pelayan', err.message, 'error');
+        })
+        .padamDokumenMesyuarat({
+          role: currentUser.role,
+          fileId: fileId
+        });
+    });
+  }
 </script>
 </body>
 </html>
