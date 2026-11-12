@@ -317,6 +317,10 @@
             <button class="dropdown-item nav-pill-btn text-success fw-bold" id="btn-analisis-peruntukan" onclick="showSection('analisis-peruntukan')">
               <i class="bi bi-cash-coin me-2"></i> Analisis Peruntukan Kewangan
             </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-induk" onclick="bukaJemputanMesyuaratMenu('induk')">
+              <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> Emel Jemputan Mesyuarat
+            </button>
           </div>
         </div>
 
@@ -351,6 +355,10 @@
             </button>
             <button class="dropdown-item nav-pill-btn" id="btn-upload-minit-pra-page" onclick="showSection('minit-pra')">
               <i class="bi bi-file-earmark-pdf-fill me-2"></i> Muat Naik Minit JK Pra SPeKS
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-pra" onclick="bukaJemputanMesyuaratMenu('pra')">
+              <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> Emel Jemputan Mesyuarat
             </button>
           </div>
         </div>
@@ -9783,6 +9791,235 @@ let monthlyTrendChartInstance = null;
         });
     });
   }
+
+  // =========================================================================
+  // KAWALAN MENU & EMEL JEMPUTAN MESYUARAT (URUSETIA HQ: PRA SPEKS & INDUK)
+  // =========================================================================
+  (function() {
+    const _asalKemaskiniPeranan = typeof kemaskiniPaparanMengikutPeranan === 'function'
+      ? kemaskiniPaparanMengikutPeranan
+      : null;
+
+    window.kemaskiniPaparanMengikutPeranan = function(role, isInitialLogin) {
+      if (_asalKemaskiniPeranan) {
+        _asalKemaskiniPeranan(role, isInitialLogin);
+      }
+
+      const roleClean = String(role || '').trim();
+      const menuInduk = document.getElementById('menu-jk-induk');
+      const menuPra = document.getElementById('menu-jk-pra');
+      const btnPenilaianPra = document.getElementById('btn-penilaian-pra-batch');
+      const btnEmelInduk = document.getElementById('btn-menu-emel-jemputan-induk');
+      const btnEmelPra = document.getElementById('btn-menu-emel-jemputan-pra');
+
+      if (roleClean === 'Urusetia HQ') {
+        if (menuInduk) menuInduk.style.display = 'block';
+        if (menuPra) menuPra.style.display = 'block';
+        if (btnEmelInduk) btnEmelInduk.style.display = 'block';
+        if (btnEmelPra) btnEmelPra.style.display = 'block';
+        // Penilaian batch Pra SPeKS dikhaskan kepada ahli JK Pra SPeKS sahaja
+        if (btnPenilaianPra) btnPenilaianPra.style.display = 'none';
+      } else if (roleClean === 'Jawatan Kuasa Pra SPeKS') {
+        if (menuPra) menuPra.style.display = 'block';
+        if (btnPenilaianPra) btnPenilaianPra.style.display = 'block';
+        if (btnEmelPra) btnEmelPra.style.display = 'none';
+      } else {
+        if (btnEmelInduk) btnEmelInduk.style.display = 'none';
+        if (btnEmelPra) btnEmelPra.style.display = 'none';
+      }
+    };
+  })();
+
+  let jemputanMesyuaratSemasa = {
+    stage: 'induk',
+    meetingKey: '',
+    tarikhMesyuarat: '',
+    negeri: ''
+  };
+
+  window.bukaJemputanMesyuaratNegeriMenu = function() {
+    bukaJemputanMesyuaratMenu('negeri');
+  };
+
+  window.bukaJemputanMesyuaratMenu = async function(stage) {
+    if (!currentUser) return;
+
+    const role = String(currentUser.role || '').trim();
+    if (stage === 'negeri' && role !== 'KCAN PPN') {
+      return Swal.fire('Akses Ditolak', 'Hanya KCAN PPN dibenarkan menghantar e-mel jemputan mesyuarat negeri.', 'error');
+    }
+    if ((stage === 'pra' || stage === 'induk') && role !== 'Urusetia HQ') {
+      return Swal.fire('Akses Ditolak', 'Hanya Urusetia HQ dibenarkan menghantar e-mel jemputan persidangan ini.', 'error');
+    }
+
+    const tahunSemasa = new Date().getFullYear();
+    let tahunOptions = '';
+    for (let y = tahunSemasa - 1; y <= tahunSemasa + 2; y++) {
+      tahunOptions += `<option value="${y}" ${y === tahunSemasa ? 'selected' : ''}>${y}</option>`;
+    }
+
+    const tajukKomiti = stage === 'pra'
+      ? 'Jawatan Kuasa Pra SPeKS'
+      : stage === 'induk'
+        ? 'Jawatan Kuasa SPeKS Induk'
+        : `Jawatan Kuasa SPeKS Negeri (${currentUser.negeri || ''})`;
+
+    const { value: formTetapan } = await Swal.fire({
+      title: 'Tetapan Persidangan',
+      html: `
+        <div class="text-start small">
+          <div class="alert alert-primary py-2 mb-3">
+            <strong>Jawatankuasa:</strong> ${escapeHtmlInduk(tajukKomiti)}
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-bold mb-1">Bil. Mesyuarat <span class="text-danger">*</span></label>
+            <select id="swalJemputanBil" class="form-select form-select-sm">
+              <option value="">-- Pilih Bil. --</option>
+              <option value="Bil. 1">Bil. 1</option><option value="Bil. 2">Bil. 2</option>
+              <option value="Bil. 3">Bil. 3</option><option value="Bil. 4">Bil. 4</option>
+              <option value="Bil. 5">Bil. 5</option><option value="Bil. 6">Bil. 6</option>
+              <option value="Bil. 7">Bil. 7</option><option value="Bil. 8">Bil. 8</option>
+              <option value="Bil. 9">Bil. 9</option><option value="Bil. 10">Bil. 10</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-bold mb-1">Tahun Mesyuarat <span class="text-danger">*</span></label>
+            <select id="swalJemputanTahun" class="form-select form-select-sm">${tahunOptions}</select>
+          </div>
+          <div class="mb-1">
+            <label class="form-label fw-bold mb-1">Tarikh Mesyuarat <span class="text-danger">*</span></label>
+            <input type="date" id="swalJemputanTarikh" class="form-control form-control-sm" value="${new Date().toISOString().slice(0, 10)}">
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Sediakan Draf E-mel',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#153f6a',
+      preConfirm: () => {
+        const bilNumber = document.getElementById('swalJemputanBil').value;
+        const tahunMesyuarat = document.getElementById('swalJemputanTahun').value;
+        const tarikhMesyuarat = document.getElementById('swalJemputanTarikh').value;
+        if (!bilNumber || !tahunMesyuarat || !tarikhMesyuarat) {
+          Swal.showValidationMessage('Sila lengkapkan Bil., Tahun dan Tarikh Mesyuarat.');
+          return false;
+        }
+        return { bilNumber, tahunMesyuarat, tarikhMesyuarat };
+      }
+    });
+
+    if (!formTetapan) return;
+
+    const negeri = stage === 'negeri' ? (currentUser.negeri || '') : '';
+    Swal.fire({ title: 'Menyediakan Draf...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close();
+        if (!res || !res.success) {
+          return Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal memuatkan draf jemputan.', 'error');
+        }
+
+        jemputanMesyuaratSemasa = {
+          stage: stage,
+          meetingKey: res.meetingKey,
+          tarikhMesyuarat: formTetapan.tarikhMesyuarat,
+          negeri: negeri
+        };
+
+        document.getElementById('jemputanNamaMesyuarat').innerText = res.meetingKey || '-';
+        document.getElementById('jemputanTarikhDisplay').innerText = res.tarikhFormatted || formTetapan.tarikhMesyuarat;
+        document.getElementById('jemputanMasa').value = res.masaDefault || '9:30 Pagi';
+        document.getElementById('jemputanTempat').value = res.tempatDefault || '';
+        document.getElementById('jemputanSenaraiEmel').value = res.senaraiEmel || '';
+        document.getElementById('jemputanSubjek').value = res.subjek || '';
+        document.getElementById('jemputanKandungan').value = res.drafKandungan || '';
+
+        const failInput = document.getElementById('jemputanFail');
+        if (failInput) failInput.value = '';
+
+        const modalEl = document.getElementById('modalJemputanMesyuarat');
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalInstance.show();
+      })
+      .withFailureHandler(err => {
+        Swal.close();
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .dapatkanDrafJemputanMesyuarat({
+        stage: stage,
+        bilNumber: formTetapan.bilNumber,
+        tahunMesyuarat: formTetapan.tahunMesyuarat,
+        tarikhMesyuarat: formTetapan.tarikhMesyuarat,
+        negeri: negeri
+      });
+  };
+
+  window.hantarEmelJemputan = async function() {
+    if (!currentUser) return;
+
+    const masa = document.getElementById('jemputanMasa')?.value.trim() || '';
+    const tempat = document.getElementById('jemputanTempat')?.value.trim() || '';
+    const senaraiEmel = document.getElementById('jemputanSenaraiEmel')?.value.trim() || '';
+    const subjek = document.getElementById('jemputanSubjek')?.value.trim() || '';
+    const kandungan = document.getElementById('jemputanKandungan')?.value.trim() || '';
+    const failInput = document.getElementById('jemputanFail');
+
+    if (!masa || !tempat || !senaraiEmel || !subjek || !kandungan) {
+      return Swal.fire('Maklumat Belum Lengkap', 'Sila lengkapkan masa, tempat, senarai e-mel, tajuk dan kandungan e-mel.', 'warning');
+    }
+
+    const filesArr = [];
+    if (failInput && failInput.files && failInput.files.length > 0) {
+      let totalSize = 0;
+      for (const f of failInput.files) {
+        totalSize += f.size;
+        if (totalSize > 15 * 1024 * 1024) {
+          return Swal.fire('Saiz Fail Terlalu Besar', 'Jumlah keseluruhan lampiran tidak boleh melebihi 15MB.', 'warning');
+        }
+        const base64Data = await toBase64(f);
+        filesArr.push({ name: f.name, data: base64Data });
+      }
+    }
+
+    Swal.fire({
+      title: 'Menghantar E-mel Jemputan...',
+      text: 'Sila tunggu sementara sistem mengedarkan jemputan kepada ahli mesyuarat.',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close();
+        if (res && res.success) {
+          const modalEl = document.getElementById('modalJemputanMesyuarat');
+          const modalInstance = bootstrap.Modal.getInstance(modalEl);
+          if (modalInstance) modalInstance.hide();
+          Swal.fire('Berjaya!', res.message || 'E-mel jemputan berjaya dihantar.', 'success');
+        } else {
+          Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal menghantar e-mel jemputan.', 'error');
+        }
+      })
+      .withFailureHandler(err => {
+        Swal.close();
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .hantarEmelJemputanMesyuarat({
+        stage: jemputanMesyuaratSemasa.stage,
+        role: currentUser.role,
+        meetingKey: jemputanMesyuaratSemasa.meetingKey,
+        tarikhMesyuarat: jemputanMesyuaratSemasa.tarikhMesyuarat,
+        masa: masa,
+        tempat: tempat,
+        subjek: subjek,
+        kandungan: kandungan,
+        negeri: jemputanMesyuaratSemasa.negeri,
+        senaraiEmel: senaraiEmel,
+        penghantar: currentUser.nama || currentUser.emel,
+        files: filesArr
+      });
+  };
 </script>
 </body>
 </html>
