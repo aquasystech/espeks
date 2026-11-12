@@ -448,7 +448,7 @@
                     <th style="min-width: 85px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="Baru / Kemaskini / FA PPD">Tindakan PPD</th>
                     <th style="min-width: 85px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="KDP PPD / FA PPN">Tindakan PPN</th>
                     <th style="min-width: 95px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="KCAN PPN / Persidangan Negeri">JK Negeri</th>
-                    <th style="min-width: 95px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="Urusetia HQ / Agihan / PIC HQ">PIC HQ</th>
+                    <th style="min-width: 95px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="Urus Setia HQ / Agihan / PIC HQ">PIC HQ</th>
                     <th style="min-width: 100px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="Persidangan JK Pra SPeKS">JK Pra SPeKS</th>
                     <th style="min-width: 100px; background-color: #1f3a60; color: #ffffff;" class="fw-bold" title="Persidangan / Pengesahan JK SPeKS Induk">JK Induk</th>
                     <th style="min-width: 110px;" class="bg-primary text-white fw-bold">JUMLAH BELUM SELESAI</th>
@@ -633,7 +633,7 @@
           <option value="DISOKONG FA PPN">Disokong FA PPN</option>
           <option value="DISOKONG KCAN PPN">Disokong KCAN PPN</option>
           <option value="DISAHKAN JAWATAN KUASA SPEKS NEGERI">Disahkan Jawatan Kuasa SPeKS Negeri</option>
-          <option value="DISOKONG URUSETIA HQ">Disokong Urusetia HQ</option>
+          <option value="DISOKONG URUSETIA HQ">Disokong Urus Setia HQ</option>
           <option value="DISOKONG PIC HQ">Disokong PIC HQ</option>
           <option value="KELULUSAN JK PRA SPEKS">Kelulusan JK Pra SPeKS</option>
           <option value="MENUNGGU PENGESAHAN JK SPEKS INDUK">Menunggu Pengesahan JK SPeKS Induk</option>
@@ -1628,10 +1628,10 @@
         <div id="bannerModUrusetia" class="alert alert-primary border-primary shadow-sm mb-3 align-items-center gap-3 py-2 px-3 rounded-3" style="display:none; border-left: 5px solid #005c99; background: #e8f4fd;">
           <div class="fs-3 text-primary"><i class="bi bi-info-circle-fill"></i></div>
           <div class="flex-grow-1">
-            <strong class="d-block text-primary" style="font-size: 0.92rem;" id="bannerModUrusetiaTajuk">MOD URUSETIA AKTIF</strong>
+            <strong class="d-block text-primary" style="font-size: 0.92rem;" id="bannerModUrusetiaTajuk">MOD URUS SETIA AKTIF</strong>
             <small class="text-dark" style="font-size: 0.8rem;" id="bannerModUrusetiaTeks">Anda sedang merekodkan keputusan persidangan bagi pihak Jawatankuasa.</small>
           </div>
-          <span class="badge bg-primary px-3 py-2 text-uppercase fw-bold" style="font-size: 0.72rem;">Tindakan Urusetia</span>
+          <span class="badge bg-primary px-3 py-2 text-uppercase fw-bold" style="font-size: 0.72rem;">Tindakan Urus Setia</span>
         </div>
       
         <!-- 1. KAD PENGEPALA PENILAIAN -->
@@ -2283,7 +2283,7 @@
     'DISOKONG FA PPN': 'Disokong FA PPN',
     'DISOKONG KCAN PPN': 'Disokong KCAN PPN',
     'DISAHKAN JAWATAN KUASA SPEKS NEGERI': 'Disahkan Jawatan Kuasa SPeKS Negeri',
-    'DISOKONG URUSETIA HQ': 'Disokong Urusetia HQ',
+    'DISOKONG URUS SETIA HQ': 'Disokong Urus Setia HQ',
     'DISOKONG PIC HQ': 'Disokong PIC HQ',
     'KELULUSAN JK PRA SPEKS': 'Kelulusan JK Pra SPeKS',
     'MENUNGGU PENGESAHAN JK SPEKS INDUK': 'Menunggu Pengesahan JK SPeKS Induk',
@@ -2894,7 +2894,7 @@
 
     Swal.fire({
       title: 'Sahkan Keputusan?',
-      html: 'Keputusan penilaian <b>Urusetia HQ</b> akan disahkan sebagai keputusan akhir bagi permohonan ini.',
+      html: 'Keputusan penilaian <b>Urus Setia HQ</b> akan disahkan sebagai keputusan akhir bagi permohonan ini.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Ya, Sahkan',
@@ -3215,7 +3215,7 @@
 
   function simpanBatchMesyuaratInduk() {
     if (!currentUser || currentUser.role !== 'Urusetia HQ') {
-      return Swal.fire('Akses Ditolak', 'Hanya Urusetia HQ boleh menetapkan maklumat batch JK SPeKS Induk.', 'error');
+      return Swal.fire('Akses Ditolak', 'Hanya Urus Setia HQ boleh menetapkan maklumat batch JK SPeKS Induk.', 'error');
     }
 
     const bilNumber = document.getElementById('batchIndukBil') ? document.getElementById('batchIndukBil').value : '';
@@ -3414,19 +3414,19 @@
         if (isUrusetiaNegeriPenilai) {
           if (bannerUrusetia) {
             bannerUrusetia.style.display = 'flex';
-            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUSETIA AKTIF: JAWATAN KUASA SPEKS NEGERI';
+            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUS SETIA AKTIF: JAWATAN KUASA SPEKS NEGERI';
             if (bannerTeks) bannerTeks.innerHTML = 'Anda sedang merekodkan keputusan persidangan bagi pihak <b>Jawatan Kuasa SPeKS Negeri</b>. Lajur <i>KCAN PPN</i> dikunci dan input di lajur <i>Jawatan Kuasa SPeKS Negeri</i> dibuka untuk penyuntingan.';
           }
         } else if (isUrusetiaPraPenilai) {
           if (bannerUrusetia) {
             bannerUrusetia.style.display = 'flex';
-            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUSETIA AKTIF: JAWATAN KUASA PRA SPEKS';
+            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUS SETIA AKTIF: JAWATAN KUASA PRA SPEKS';
             if (bannerTeks) bannerTeks.innerHTML = 'Anda sedang merekodkan keputusan persidangan bagi pihak <b>Jawatan Kuasa Pra SPeKS</b>. Lajur <i>Jawatan Kuasa Pra SPeKS</i> dibuka untuk penyuntingan.';
           }
         } else if (isUrusetiaHQPenilai) {
           if (bannerUrusetia) {
             bannerUrusetia.style.display = 'flex';
-            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUSETIA AKTIF: JAWATAN KUASA SPEKS INDUK';
+            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUS SETIA AKTIF: JAWATAN KUASA SPEKS INDUK';
             if (bannerTeks) bannerTeks.innerHTML = 'Anda sedang merekodkan keputusan persidangan bagi pihak <b>Jawatan Kuasa SPeKS Induk</b>. Lajur <i>Jawatan Kuasa SPeKS Induk</i> dibuka untuk penyuntingan.';
           }
         } else {
@@ -5926,8 +5926,8 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
     // Paparkan pop-up amaran peranan Urusetia jika melibatkan KCAN PPN atau Urusetia HQ
     if (namaJKUrusetia) {
       Swal.fire({
-        title: 'Pengesahan Peranan Urusetia',
-        html: `Anda akan bertindak sebagai <b>Urusetia bagi ${namaJKUrusetia}</b> untuk merekodkan keputusan persidangan permohonan ini.<br><br>Adakah anda pasti?`,
+        title: 'Pengesahan Peranan Urus Setia',
+        html: `Anda akan bertindak sebagai <b>Urus Setia bagi ${namaJKUrusetia}</b> untuk merekodkan keputusan persidangan permohonan ini.<br><br>Adakah anda pasti?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#153f6a',
@@ -7724,7 +7724,7 @@ let monthlyTrendChartInstance = null;
         <table class="footer-sign">
           <tr>
             <td width="60%">
-              <p>Disediakan Oleh:<br><br><br><br><b>( URUSETIA MESYUARAT JAWATAN KUASA SPEKS INDUK )</b><br>Sistem eSPeKS Akuakultur</p>
+              <p>Disediakan Oleh:<br><br><br><br><b>( URUS SETIA MESYUARAT JAWATAN KUASA SPEKS INDUK )</b><br>Sistem eSPeKS Akuakultur</p>
             </td>
             <td width="40%">
               <p>Disahkan Oleh:<br><br><br><br><b>( PENGERUSI MESYUARAT JAWATAN KUASA SPEKS INDUK )</b><br>Jabatan Perikanan Malaysia</p>
