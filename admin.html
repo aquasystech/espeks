@@ -2863,7 +2863,7 @@
 
           '<td><div class="d-flex align-items-center flex-wrap gap-1">' +
           ((role === 'Urusetia HQ' && st === 'KELULUSAN JK PRA SPEKS')
-            ? '<button type="button" class="btn btn-sm btn-success py-1 px-2" onclick="bukaHalamanBatch(\'induk\')">Pengurusan Batch Induk</button>'
+            ? '<button type="button" class="btn btn-sm btn-success py-1 px-2" onclick="bukaHalamanBatch(\'induk\')">Pengurusan Senarai Induk</button>'
             : (role === 'Jawatan Kuasa SPeKS Negeri' && (st === 'DISOKONG KCAN PPN' || st === 'TIDAK DISOKONG KCAN PPN'))
               ? '<button type="button" class="btn btn-sm btn-success py-1 px-2" onclick="bukaHalamanBatch(\'negeri\')">Penilaian JK SPeKS Negeri</button>'
               : (role === 'Jawatan Kuasa Pra SPeKS' && (st === 'DISOKONG PIC HQ' || st === 'TIDAK DISOKONG PIC HQ'))
@@ -5080,19 +5080,19 @@ function escapeHtmlInduk(value) {
   let activeBatchPayload = null;
   const batchStageConfig = {
     induk: { 
-      title: 'BATCH PENILAIAN JK SPEKS INDUK', 
+      title: 'SENARAI PENILAIAN JK SPEKS INDUK', 
       role: ['Urusetia HQ'], 
       status: ['Kelulusan JK Pra SPeKS'], 
       description: 'Permohonan berstatus Kelulusan JK Pra SPeKS sahaja.' 
     },
     negeri: { 
-      title: 'BATCH PENILAIAN JK SPEKS NEGERI', 
+      title: 'SENARAI PENILAIAN JK SPEKS NEGERI', 
       role: ['KCAN PPN', 'Jawatan Kuasa SPeKS Negeri'], 
       status: ['Disokong KCAN PPN', 'Tidak Disokong KCAN PPN'], 
       description: 'Permohonan berstatus Disokong/Tidak Disokong KCAN PPN bagi negeri akaun ini sahaja.' 
     },
     pra: { 
-      title: 'BATCH PENILAIAN JK PRA SPEKS', 
+      title: 'SENARAI PENILAIAN JK PRA SPEKS', 
       role: ['Jawatan Kuasa Pra SPeKS', 'Urusetia HQ'], 
       status: ['Disokong PIC HQ', 'Tidak Disokong PIC HQ'], 
       description: 'Permohonan berstatus Disokong/Tidak Disokong PIC HQ sahaja.' 
@@ -5749,7 +5749,7 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
     .withSuccessHandler(res => {
       if (!res || !res.success) {
         if (bodyA) {
-          bodyA.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">' + (res && res.message ? res.message : 'Gagal memuatkan batch.') + '</td></tr>';
+          bodyA.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">' + (res && res.message ? res.message : 'Gagal memuatkan senarai.') + '</td></tr>';
         }
         return;
       }
@@ -5873,8 +5873,8 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
       if (dataKewanganSemasa.bakiPeruntukan < 0) {
         return Swal.fire({
           title: 'Sekatan Siling Peruntukan!',
-          html: `Komitmen kelulusan batch ini menyebabkan <b>defisit bajet nasional sebanyak RM ${formatDuit(Math.abs(dataKewanganSemasa.bakiPeruntukan))}</b>.<br><br>` +
-                `Sila kurangkan bilangan permohonan dalam batch ini atau kemaskini siling peruntukan tahunan terlebih dahulu.`,
+          html: `Komitmen kelulusan senarai ini menyebabkan <b>defisit bajet nasional sebanyak RM ${formatDuit(Math.abs(dataKewanganSemasa.bakiPeruntukan))}</b>.<br><br>` +
+                `Sila kurangkan bilangan permohonan dalam senarai ini atau kemaskini siling peruntukan tahunan terlebih dahulu.`,
           icon: 'error',
           confirmButtonColor: '#dc3545',
           confirmButtonText: 'Faham & Semak Semula'
@@ -5886,13 +5886,13 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
     if (!selectedIds.length) return Swal.fire('Tiada Pilihan', 'Pilih sekurang-kurangnya satu permohonan baharu untuk disahkan.', 'warning');
     Swal.fire({ title: 'Sahkan permohonan diangkat ke JK?', html: 'Sebanyak <b>' + selectedIds.length + '</b> permohonan yang layak akan diangkat ke mesyuarat ini. Sistem akan menyemak semula status semasa sebelum menyimpan.', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Sahkan', cancelButtonText: 'Semak Semula', reverseButtons: true }).then(r => {
       if (!r.isConfirmed) return;
-      Swal.fire({ title: 'Mengesahkan Batch...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      Swal.fire({ title: 'Mengesahkan Senarai...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       const payload = Object.assign({}, activeBatchPayload, { appIds: selectedIds });
       google.script.run.withSuccessHandler(res => {
         Swal.close();
         if (res && res.success) {
-          Swal.fire('Batch Dikemaskini', res.message || 'Batch berjaya dikemaskini.', 'success').then(() => { muatSenaraiBatchPenilaian(); loadTable(); });
-        } else Swal.fire('Tidak Berjaya', res && res.message ? res.message : 'Batch tidak dapat dikemaskini.', 'error');
+          Swal.fire('Senarai Dikemaskini', res.message || 'Senarai berjaya dikemaskini.', 'success').then(() => { muatSenaraiBatchPenilaian(); loadTable(); });
+        } else Swal.fire('Tidak Berjaya', res && res.message ? res.message : 'Senarai tidak dapat dikemaskini.', 'error');
       }).withFailureHandler(err => { Swal.close(); Swal.fire('Ralat Pelayan', err && err.message ? err.message : 'Ralat mengesahkan batch.', 'error'); }).sahkanBatchPenilaian(payload);
     });
   }
@@ -6506,7 +6506,7 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
             const dariBatch = !!(activeBatchStage && activeBatchPayload);
             if (dariBatch) {
               kembaliDariPenilaian();
-              Swal.fire('Berjaya', 'Penilaian disahkan dan berjaya disimpan. Senarai batch aktif telah dikemaskini.', 'success');
+              Swal.fire('Berjaya', 'Penilaian disahkan dan berjaya disimpan. Senarai aktif telah dikemaskini.', 'success');
             } else {
               showSection('table');
               Swal.fire('Berjaya', 'Penilaian disahkan dan berjaya disimpan!', 'success');
