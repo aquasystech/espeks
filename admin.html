@@ -1760,7 +1760,7 @@
               <i class="bi bi-arrow-counterclockwise me-1"></i> Minta Pindaan Pemohon
             </button>
             <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
-              <i class="bi bi-x-circle me-1"></i> Tolak Permohonan
+              <i class="bi bi-x-circle me-1"></i> Tidak Sokong
             </button>
             <button type="button" class="btn btn-success btn-sm fw-bold px-4" onclick="saveData()">
               <i class="bi bi-check-circle-fill me-1"></i> Sahkan dan Sokong
@@ -3550,7 +3550,7 @@
           else if (r === 'Jawatan Kuasa SPeKS Induk') {
             footerBtns.innerHTML = `
               <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
-                <i class="bi bi-x-circle me-1"></i> Tolak Kelulusan
+                <i class="bi bi-x-circle me-1"></i> Tidak Sokong
               </button>
               <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('DILULUSKAN')">
                 <i class="bi bi-check2-circle me-1"></i> Sahkan Kelulusan (Muktamad)
@@ -3563,7 +3563,7 @@
                 <i class="bi bi-arrow-counterclockwise me-1"></i> Minta Pindaan Pemohon
               </button>
               <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
-                <i class="bi bi-x-circle me-1"></i> Tolak Permohonan
+                <i class="bi bi-x-circle me-1"></i> Tidak Sokong
               </button>
               <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('MENUNGGU PENGESAHAN JK SPEKS INDUK')">
                 <i class="bi bi-send-check-fill me-1"></i> Kelulusan JK SPeKS Induk
@@ -3590,7 +3590,7 @@
                   <i class="bi bi-arrow-counterclockwise me-1"></i> Minta Pindaan Pemohon
                 </button>
                 <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
-                  <i class="bi bi-x-circle me-1"></i> Tolak Permohonan
+                  <i class="bi bi-x-circle me-1"></i> Tidak Sokong
                 </button>
                 <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('DISAHKAN JAWATAN KUASA SPEKS NEGERI')">
                   <i class="bi bi-check2-circle me-1"></i> Sahkan Keputusan JK SPeKS Negeri
@@ -3639,8 +3639,8 @@
                     <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 fw-bold" style="font-size:0.75rem;">
                       <i class="bi bi-shield-lock-fill me-1"></i> Permohonan Tidak Disokong (Kunci Penuh)
                     </span>
-                    <button type="button" class="btn btn-danger btn-sm fw-bold px-4 shadow-sm" onclick="handleTolak()">
-                      <i class="bi bi-x-circle me-1"></i> Tolak Permohonan
+                    <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
+                      <i class="bi bi-x-circle me-1"></i> Tidak Sokong
                     </button>
                   </div>
                 `;
@@ -3709,7 +3709,7 @@
                   <i class="bi bi-arrow-counterclockwise me-1"></i> Minta Pindaan Pemohon
                 </button>
                 <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
-                  <i class="bi bi-x-circle me-1"></i> Tolak Permohonan
+                  <i class="bi bi-x-circle me-1"></i> Tidak Sokong
                 </button>
                 <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('${statusSahkan}')">
                   <i class="bi bi-check-circle-fill me-1"></i> ${labelSahkan}
@@ -6351,7 +6351,7 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
       const role = currentUser ? currentUser.role : '';
       const isPeringkatAwal = ['FA PPD', 'KDP PPD', 'FA PPN', 'KCAN PPN'].includes(role);
       
-      const tajukDialog = isPeringkatAwal ? 'Perakuan Tidak Disokong?' : 'Tolak Permohonan?';
+      const tajukDialog = 'Perakuan Tidak Disokong?';
       const teksKeterangan = isPeringkatAwal 
         ? `Permohonan akan ditandakan sebagai TIDAK DISOKONG (${role}) dan tetap akan diangkat ke peringkat seterusnya sehingga mesyuarat JK SPeKS Negeri.`
         : 'Permohonan akan ditolak dan dimuktamadkan di peringkat ini.';
@@ -6362,7 +6362,7 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
         icon: 'warning', 
         showCancelButton: true, 
         confirmButtonColor: '#d33', 
-        confirmButtonText: isPeringkatAwal ? 'Ya, Tidak Sokong' : 'Ya, Tolak Permohonan',
+        confirmButtonText: 'Ya, Tidak Sokong',
         cancelButtonText: 'Batal'
       })
       .then(confirm => {
