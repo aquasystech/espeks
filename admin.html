@@ -3381,14 +3381,17 @@
             return !fn.includes('[foto]') && !fn.includes('gambar pemohon') && !fn.includes('foto pemohon');
           });
 
+          // Tentukan label dokumen No. 3 berdasarkan Jenis Pemohon
+          var labelDokumenTiga = isSyarikat ? "Rancangan Perniagaan / Kertas Cadangan" : "Perakuan Potensi Penternak";
+          
           // Senarai dokumen sokongan piawai SPeKS untuk sandaran (fallback) fail lama tanpa tag
           var fallbackDocNames = [
             "Salinan Kad Pengenalan / Sijil SSM",
             "Salinan Geran Tanah / Perjanjian Sewa / Surat Kebenaran / TOL",
             "Salinan Lesen SKL / Premis Akuakultur",
-            "Rancangan Perniagaan / Kertas Cadangan",
+            labelDokumenTiga,
             "Sijil MyGAP / Kursus / Biosekuriti",
-            "Borang Permohonan Manual", // <-- DITAMBAH
+            "Borang Permohonan Manual",
             "Dokumen Sokongan Tambahan"
           ];
 
@@ -3403,6 +3406,11 @@
               if (matchTag) {
                 docTag = matchTag[1].trim();
                 actualFileName = matchTag[2].trim() || rawName;
+                
+                // Jika pemohon individu, tukar tag "Rancangan Perniagaan" kepada "Perakuan Potensi Penternak"
+                if (!isSyarikat && (docTag.toUpperCase().includes("RANCANGAN PERNIAGAAN") || docTag.toUpperCase().includes("KERTAS CADANGAN"))) {
+                  docTag = "Perakuan Potensi Penternak";
+                }
               } else {
                 // 2. Jika fail tiada tag (fail lama/dummy), gunakan nama rujukan dokumen mengikut urutan
                 docTag = fallbackDocNames[i] || 'Dokumen Sokongan ' + (i + 1);
