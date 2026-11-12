@@ -2362,12 +2362,16 @@
           document.getElementById('login-section').style.display = 'none';
           document.getElementById('main-dashboard').style.display = 'block';
 
-          // 1. Kemaskini nama & peranan secara selamat (elak ralat jika elemen tiada)
+          // 1. Kemaskini nama & peranan secara selamat (paparan UI sahaja tanpa ubah nilai asal)
+          var formatLabelPeranan = function(val) {
+            return String(val || 'ROLE').replace(/Urusetia/gi, 'Urus Setia');
+          };
+
           var elNama = document.getElementById('display-nama');
           if (elNama) elNama.innerText = currentUser.nama || 'Pegawai SPeKS';
 
           var elRole = document.getElementById('display-role');
-          if (elRole) elRole.innerText = currentUser.role || 'ROLE';
+          if (elRole) elRole.innerText = formatLabelPeranan(currentUser.role);
 
           if (currentUser.role === 'Jawatan Kuasa SPeKS Induk') {
             muatSesiMesyuaratInduk();
@@ -2375,6 +2379,18 @@
 
           // 2. Lukis butang / dropdown penukar peranan selepas penetapan teks
           if (typeof renderHeaderRoleSwitcher === 'function') {
+            const _asalRenderSwitcher = renderHeaderRoleSwitcher;
+            renderHeaderRoleSwitcher = function() {
+              _asalRenderSwitcher.apply(this, arguments);
+              const containerRole = document.getElementById('headerRoleSwitcherContainer');
+              if (containerRole) {
+                containerRole.querySelectorAll('#display-role, .dropdown-item, button, span').forEach(el => {
+                  if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+                    el.textContent = formatLabelPeranan(el.textContent);
+                  }
+                });
+              }
+            };
             renderHeaderRoleSwitcher();
           }
 
