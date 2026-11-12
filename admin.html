@@ -305,25 +305,29 @@
           <button class="nav-pill-btn dropdown-toggle" id="btn-menu-jk-induk" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-clipboard2-check me-2 fs-5"></i> JK SPeKS Induk
           </button>
-          <div class="dropdown-menu shadow-sm" aria-labelledby="btn-menu-jk-induk">
-            <button class="dropdown-item nav-pill-btn" id="btn-penilaian-induk-batch" onclick="bukaHalamanBatch('induk')">
-              <i class="bi bi-clipboard2-check me-2"></i> Penilaian JK SPeKS Induk
-            </button>
-            <button class="dropdown-item nav-pill-btn" id="btn-upload-minit-master" onclick="showSection('minit-master')">
-              <i class="bi bi-file-earmark-pdf-fill me-2"></i> Muat Naik Minit JK SPeKS Induk
-            </button>
-            <div class="dropdown-divider"></div>
-            <!-- MENU BAHARU: ANALISIS PERUNTUKAN -->
-            <button class="dropdown-item nav-pill-btn text-success fw-bold" id="btn-analisis-peruntukan" onclick="showSection('analisis-peruntukan')">
-              <i class="bi bi-cash-coin me-2"></i> Analisis Peruntukan Kewangan
-            </button>
-            <div class="dropdown-divider"></div>
+          <div class="dropdown-menu shadow" aria-labelledby="btn-menu-jk-induk">
+            <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 1: Pra-Mesyuarat</div>
             <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-induk" onclick="bukaJemputanMesyuaratMenu('induk')">
-              <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> Emel Jemputan Mesyuarat
+              <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> 1. Emel Jemputan Mesyuarat
             </button>
             <button class="dropdown-item nav-pill-btn text-primary fw-bold" id="btn-menu-dokumen-induk" onclick="bukaModalDokumenMesyuarat('induk')">
-              <i class="bi bi-folder-plus me-2"></i> Pengurusan Dokumen Mesyuarat
-            </button>      
+              <i class="bi bi-folder-plus me-2"></i> 2. Pengurusan Dokumen Mesyuarat
+            </button>
+
+            <div class="dropdown-divider"></div>
+            <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 2: Persidangan &amp; Kewangan</div>
+            <button class="dropdown-item nav-pill-btn text-success fw-bold" id="btn-analisis-peruntukan" onclick="showSection('analisis-peruntukan')">
+              <i class="bi bi-cash-coin me-2"></i> 3. Analisis Peruntukan Kewangan
+            </button>
+            <button class="dropdown-item nav-pill-btn fw-bold" id="btn-penilaian-induk-batch" onclick="bukaHalamanBatch('induk')">
+              <i class="bi bi-clipboard2-check me-2"></i> 4. Penilaian JK SPeKS Induk
+            </button>
+
+            <div class="dropdown-divider"></div>
+            <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 3: Pasca-Mesyuarat</div>
+            <button class="dropdown-item nav-pill-btn" id="btn-upload-minit-master" onclick="showSection('minit-master')">
+              <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i> 5. Muat Naik Minit JK SPeKS Induk
+            </button>
           </div>
         </div>
 
@@ -363,7 +367,6 @@
             <i class="bi bi-clipboard2-check me-2 fs-5"></i> JK Pra SPeKS
           </button>
           <div class="dropdown-menu shadow" aria-labelledby="btn-menu-jk-pra">
-            
             <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 1: Pra-Mesyuarat</div>
             <button class="dropdown-item nav-pill-btn text-warning-emphasis fw-bold" id="btn-menu-emel-jemputan-pra" onclick="bukaJemputanMesyuaratMenu('pra')">
               <i class="bi bi-envelope-paper-fill me-2 text-warning"></i> 1. Emel Jemputan Mesyuarat
@@ -371,19 +374,18 @@
             <button class="dropdown-item nav-pill-btn text-primary fw-bold" id="btn-menu-dokumen-pra" onclick="bukaModalDokumenMesyuarat('pra')">
               <i class="bi bi-folder-plus me-2"></i> 2. Pengurusan Dokumen Mesyuarat
             </button>
-            
+
             <div class="dropdown-divider"></div>
             <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 2: Persidangan</div>
             <button class="dropdown-item nav-pill-btn fw-bold" id="btn-penilaian-pra-batch" onclick="bukaHalamanBatch('pra')">
               <i class="bi bi-clipboard2-check me-2"></i> 3. Penilaian JK Pra SPeKS
             </button>
-            
+
             <div class="dropdown-divider"></div>
             <div class="px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Fasa 3: Pasca-Mesyuarat</div>
             <button class="dropdown-item nav-pill-btn" id="btn-upload-minit-pra-page" onclick="showSection('minit-pra')">
               <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i> 4. Muat Naik Minit JK Pra SPeKS
             </button>
-            
           </div>
         </div>
 
@@ -3369,8 +3371,10 @@
 
         var isPastStage = semakStatusLepasPeringkat(r, statusSemasaNorm);
 
-        // Urusetia HQ dibenarkan menilai bagi pihak JK Induk jika permohonan berstatus 'KELULUSAN JK PRA SPEKS'
+        // Urusetia HQ dibenarkan menilai bagi pihak JK Induk atau JK Pra SPeKS
         var isUrusetiaHQPenilai = (r === 'Urusetia HQ' && statusSemasaNorm === 'KELULUSAN JK PRA SPEKS');
+        var isUrusetiaPraPenilai = (r === 'Urusetia HQ' && (activeBatchStage === 'pra' || statusSemasaNorm === 'DISOKONG PIC HQ' || statusSemasaNorm === 'TIDAK DISOKONG PIC HQ'));
+        window.isUrusetiaPraPenilaiGlobal = isUrusetiaPraPenilai;
 
         // KCAN PPN bertindak sebagai Urusetia bagi JK SPeKS Negeri apabila menilai dalam fasa mesyuarat negeri
         var isUrusetiaNegeriPenilai = (r === 'KCAN PPN' && (activeBatchStage === 'negeri' || statusSemasaNorm === 'DISOKONG KCAN PPN' || statusSemasaNorm === 'TIDAK DISOKONG KCAN PPN'));
@@ -3394,8 +3398,8 @@
         // JK SPeKS Induk hanya mengesahkan sahaja (tiada penilaian), jadi borang sentiasa dikunci (read-only)
         var isJKIndukPengesah = (r === 'Jawatan Kuasa SPeKS Induk');
 
-        // Kunci borang jika muktamad, tindakan view (kecuali jika bertindak sebagai Urusetia Negeri/HQ), atau melepasi peringkat
-        var isLocked = isFinalized || isJKIndukPengesah || (isPastStage && !isUrusetiaNegeriPenilai) || (actionType === 'view' && !picHQCanEdit && !isUrusetiaHQPenilai && !isUrusetiaNegeriPenilai);
+        // Kunci borang jika muktamad, tindakan view (kecuali jika bertindak sebagai Urusetia Negeri/Pra/HQ), atau melepasi peringkat
+        var isLocked = isFinalized || isJKIndukPengesah || (isPastStage && !isUrusetiaNegeriPenilai && !isUrusetiaPraPenilai) || (actionType === 'view' && !picHQCanEdit && !isUrusetiaHQPenilai && !isUrusetiaPraPenilai && !isUrusetiaNegeriPenilai);
         window.evalIsLockedGlobal = isLocked;
 
         // ── 2. KEMASKINI PENGEPALA & KAWALAN BANNER URUSETIA ──
@@ -3415,6 +3419,12 @@
             bannerUrusetia.style.display = 'flex';
             if (bannerTajuk) bannerTajuk.innerText = 'MOD URUSETIA AKTIF: JAWATAN KUASA SPEKS NEGERI';
             if (bannerTeks) bannerTeks.innerHTML = 'Anda sedang merekodkan keputusan persidangan bagi pihak <b>Jawatan Kuasa SPeKS Negeri</b>. Lajur <i>KCAN PPN</i> dikunci dan input di lajur <i>Jawatan Kuasa SPeKS Negeri</i> dibuka untuk penyuntingan.';
+          }
+        } else if (isUrusetiaPraPenilai) {
+          if (bannerUrusetia) {
+            bannerUrusetia.style.display = 'flex';
+            if (bannerTajuk) bannerTajuk.innerText = 'MOD URUSETIA AKTIF: JAWATAN KUASA PRA SPEKS';
+            if (bannerTeks) bannerTeks.innerHTML = 'Anda sedang merekodkan keputusan persidangan bagi pihak <b>Jawatan Kuasa Pra SPeKS</b>. Lajur <i>Jawatan Kuasa Pra SPeKS</i> dibuka untuk penyuntingan.';
           }
         } else if (isUrusetiaHQPenilai) {
           if (bannerUrusetia) {
@@ -3599,12 +3609,19 @@
           'Jawatan Kuasa SPeKS Negeri', 'Urusetia HQ', 'PIC HQ',
           'Jawatan Kuasa Pra SPeKS', 'Jawatan Kuasa SPeKS Induk'
         ];
+        const effectiveRole = isUrusetiaNegeriPenilai
+          ? 'Jawatan Kuasa SPeKS Negeri'
+          : isUrusetiaPraPenilai
+            ? 'Jawatan Kuasa Pra SPeKS'
+            : isUrusetiaHQPenilai
+              ? 'Jawatan Kuasa SPeKS Induk'
+              : r;
         const snapshots = app._snapshots || {};
-        const currentIdx = ROLES_HIERARKI.indexOf(r);
+        const currentIdx = ROLES_HIERARKI.indexOf(effectiveRole);
         let sourceItems = null;
 
-        if (snapshots[r] && snapshots[r].length > 0) {
-          sourceItems = snapshots[r];
+        if (snapshots[effectiveRole] && snapshots[effectiveRole].length > 0) {
+          sourceItems = snapshots[effectiveRole];
         } else if (currentIdx > 0) {
           for (let i = currentIdx - 1; i >= 0; i--) {
             const prevRole = ROLES_HIERARKI[i];
@@ -3612,7 +3629,7 @@
               sourceItems = snapshots[prevRole].map(it => {
                 const wasSupported = (it.sokongan === 'SOKONG' || it.sokong === true || it.sokong === 'true');
                 if (wasSupported) {
-                  const autoSokongInduk = (r === 'Jawatan Kuasa SPeKS Induk');
+                  const autoSokongInduk = (effectiveRole === 'Jawatan Kuasa SPeKS Induk');
                   return {
                     item: it.item || '', qty: it.qty || 1, harga: it.harga || 0,
                     sokong: autoSokongInduk ? true : null, 
@@ -3680,6 +3697,19 @@
               </button>
             `;
           } 
+          else if (isUrusetiaPraPenilai) {
+            footerBtns.innerHTML = `
+              <button type="button" class="btn btn-warning btn-sm fw-bold px-3 text-dark" onclick="saveData('KEMASKINI_PEMOHON')">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Minta Pindaan Pemohon
+              </button>
+              <button type="button" class="btn btn-danger btn-sm fw-bold px-3" onclick="handleTolak()">
+                <i class="bi bi-x-circle me-1"></i> Tidak Sokong
+              </button>
+              <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('KELULUSAN JK PRA SPEKS')">
+                <i class="bi bi-check-circle-fill me-1"></i> Kelulusan JK Pra SPeKS
+              </button>
+            `;
+          }
           else if (isUrusetiaHQPenilai) {
             footerBtns.innerHTML = `
               <button type="button" class="btn btn-warning btn-sm fw-bold px-3 text-dark" onclick="saveData('KEMASKINI_PEMOHON')">
@@ -4090,7 +4120,10 @@
 
     let targetRole = currentUser.role;
     const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
-    if (targetRole.toUpperCase().includes('URUSETIA HQ')) {
+    const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
+    if (isUrusetiaPra) {
+      targetRole = 'Jawatan Kuasa Pra SPeKS';
+    } else if (targetRole.toUpperCase().includes('URUSETIA HQ')) {
       targetRole = 'Jawatan Kuasa SPeKS Induk';
     } else if (isUrusetiaNegeri) {
       targetRole = 'Jawatan Kuasa SPeKS Negeri';
@@ -4188,9 +4221,12 @@
       
       // Penanda visual pada lajur peranan aktif
       const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
+      const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
       const isCurrent = isUrusetiaNegeri 
         ? (rl === 'Jawatan Kuasa SPeKS Negeri')
-        : ((rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk'));
+        : isUrusetiaPra
+          ? (rl === 'Jawatan Kuasa Pra SPeKS')
+          : ((rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk'));
       const activeBadge = isCurrent ? '<span class="badge bg-warning text-dark ms-1 shadow-sm" style="font-size:0.65rem;">Peranan Anda</span>' : '';
       const borderActive = isCurrent ? 'outline: 3px solid #ffc107; outline-offset: -3px; box-shadow: inset 0 0 10px rgba(255,193,7,0.3);' : '';
 
@@ -4368,13 +4404,18 @@
 
         // Semak sama ada lajur ini adalah peringkat aktif semasa
         const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
+        const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
         const isCurrent = isUrusetiaNegeri 
           ? (rl === 'Jawatan Kuasa SPeKS Negeri')
-          : ((rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk'));
+          : isUrusetiaPra
+            ? (rl === 'Jawatan Kuasa Pra SPeKS')
+            : ((rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk'));
         
         // Semak sama ada lajur ini adalah peringkat sebelum (past) mengikut hierarki
         let isPast = false;
-        if (r === 'Urusetia HQ') {
+        if (isUrusetiaPra) {
+          isPast = (ri < rolesArr.indexOf('Jawatan Kuasa Pra SPeKS') && rl !== 'Jawatan Kuasa Pra SPeKS');
+        } else if (r === 'Urusetia HQ') {
           isPast = (ri < rolesArr.indexOf('Jawatan Kuasa SPeKS Induk') && rl !== 'Jawatan Kuasa SPeKS Induk');
         } else if (isUrusetiaNegeri) {
           isPast = (ri < rolesArr.indexOf('Jawatan Kuasa SPeKS Negeri') && rl !== 'Jawatan Kuasa SPeKS Negeri');
@@ -4543,7 +4584,13 @@
       if (rl === 'Urusetia HQ') return ''; // Buang dari Footer
 
       const rc = rl.replace(/\s+/g, '-');
-      const isCurrent = (rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk');
+      const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
+      const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
+      const isCurrent = isUrusetiaNegeri
+        ? (rl === 'Jawatan Kuasa SPeKS Negeri')
+        : isUrusetiaPra
+          ? (rl === 'Jawatan Kuasa Pra SPeKS')
+          : ((rl === r) || (r === 'Urusetia HQ' && rl === 'Jawatan Kuasa SPeKS Induk'));
       const bg = isCurrent ? 'background:#fff3cd;' : 'background:#f8f9fa;';
       return `
         <td colspan="3" style="${bg} border:1px solid #dee2e6; text-align:right; font-weight:bold; font-size:0.75rem; color:#555; padding:6px;">Jumlah:</td>
@@ -4897,9 +4944,12 @@ function escapeHtmlInduk(value) {
     if (!currentUser || !globalListItems) return;
     let r = currentUser.role;
     const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
+    const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
 
     // Alihkan rujukan bacaan ke lajur persidangan jika bertindak sebagai urusetia
-    if (r === 'Urusetia HQ') {
+    if (isUrusetiaPra) {
+      r = 'Jawatan Kuasa Pra SPeKS';
+    } else if (r === 'Urusetia HQ') {
       r = 'Jawatan Kuasa SPeKS Induk';
     } else if (isUrusetiaNegeri) {
       r = 'Jawatan Kuasa SPeKS Negeri';
@@ -4985,7 +5035,14 @@ function escapeHtmlInduk(value) {
     });
 
     if (currentUser && currentUser.role) {
-      let activeTotal = totals[currentUser.role] || 0;
+      const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
+      const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
+      const activeRoleKey = isUrusetiaPra
+        ? 'Jawatan Kuasa Pra SPeKS'
+        : isUrusetiaNegeri
+          ? 'Jawatan Kuasa SPeKS Negeri'
+          : (currentUser.role === 'Urusetia HQ' ? 'Jawatan Kuasa SPeKS Induk' : currentUser.role);
+      let activeTotal = totals[activeRoleKey] || 0;
       let hiddenTotal = document.getElementById('jumlahTotalOpenEval');
       if (hiddenTotal) hiddenTotal.innerText = 'RM ' + formatDuit(activeTotal);
       
@@ -5039,7 +5096,7 @@ function escapeHtmlInduk(value) {
     },
     pra: { 
       title: 'BATCH PENILAIAN JK PRA SPEKS', 
-      role: ['Jawatan Kuasa Pra SPeKS'], 
+      role: ['Jawatan Kuasa Pra SPeKS', 'Urusetia HQ'], 
       status: ['Disokong PIC HQ', 'Tidak Disokong PIC HQ'], 
       description: 'Permohonan berstatus Disokong/Tidak Disokong PIC HQ sahaja.' 
     }
@@ -5852,6 +5909,8 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
     // Tentukan sama ada pegawai sedang bertindak sebagai Urusetia bagi persidangan berkaitan
     if (activeBatchStage === 'negeri' && r === 'KCAN PPN') {
       namaJKUrusetia = 'JK SPeKS Negeri';
+    } else if (activeBatchStage === 'pra' && r === 'Urusetia HQ') {
+      namaJKUrusetia = 'JK Pra SPeKS';
     } else if (activeBatchStage === 'induk' && r === 'Urusetia HQ') {
       namaJKUrusetia = 'JK SPeKS Induk';
     }
@@ -6137,15 +6196,16 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
   async function saveData(statusCustom) {
     if (!currentUser) return;
 
-    let r = currentUser.role;
+    const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
+    let r = isUrusetiaPra ? 'Jawatan Kuasa Pra SPeKS' : currentUser.role;
     let rClean = r.replace(/\s+/g, '-');
     let status = statusCustom || "";
 
     const roleUpper = String(r || '').toUpperCase().trim();
     const isKCAN = roleUpper.includes('KCAN PPN');
     const isJKNegeri = roleUpper === 'JAWATAN KUASA SPEKS NEGERI' || (roleUpper.includes('NEGERI') && !roleUpper.includes('PPN'));
-    const isJKPra = roleUpper.includes('PRA') || roleUpper.includes('AKUA');
-    const isUrusetiaHQ = roleUpper === 'URUSETIA HQ';
+    const isJKPra = roleUpper.includes('PRA') || roleUpper.includes('AKUA') || isUrusetiaPra;
+    const isUrusetiaHQ = String(currentUser.role || '').toUpperCase().trim() === 'URUSETIA HQ' && !isUrusetiaPra;
     const isJKInduk = roleUpper.includes('INDUK');
     const isPenilaianJKIndukBatch = isUrusetiaHQ && activeApp && normaliseStatus(activeApp['Status Semasa']) === 'KELULUSAN JK PRA SPEKS';
 
@@ -6508,13 +6568,15 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
               let statusBaru = 'DITOLAK';
               const isUrusetiaNegeri = (typeof window.isUrusetiaNegeriPenilaiGlobal !== 'undefined' && window.isUrusetiaNegeriPenilaiGlobal);
 
+              const isUrusetiaPra = (typeof window.isUrusetiaPraPenilaiGlobal !== 'undefined' && window.isUrusetiaPraPenilaiGlobal);
+
               if (role === 'FA PPD') statusBaru = 'TIDAK DISOKONG FA PPD';
               else if (role === 'KDP PPD') statusBaru = 'TIDAK DISOKONG KDP PPD';
               else if (role === 'FA PPN') statusBaru = 'TIDAK DISOKONG FA PPN';
               else if (role === 'KCAN PPN') statusBaru = isUrusetiaNegeri ? 'TIDAK DISOKONG JAWATAN KUASA SPEKS NEGERI' : 'TIDAK DISOKONG KCAN PPN';
               else if (role === 'Jawatan Kuasa SPeKS Negeri') statusBaru = 'TIDAK DISOKONG JAWATAN KUASA SPEKS NEGERI';
               else if (role === 'PIC HQ') statusBaru = 'TIDAK DISOKONG PIC HQ';
-              else if (role === 'Jawatan Kuasa Pra SPeKS') statusBaru = 'TIDAK SOKONG JK PRA SPEKS';
+              else if (role === 'Jawatan Kuasa Pra SPeKS' || isUrusetiaPra) statusBaru = 'TIDAK SOKONG JK PRA SPEKS';
 
               google.script.run
                 .withSuccessHandler((res) => { 
@@ -9919,17 +9981,20 @@ let monthlyTrendChartInstance = null;
       const btnEmelInduk = document.getElementById('btn-menu-emel-jemputan-induk');
       const btnEmelPra = document.getElementById('btn-menu-emel-jemputan-pra');
 
+      const btnDokumenPra = document.getElementById('btn-menu-dokumen-pra');
+
       if (roleClean === 'Urusetia HQ') {
         if (menuInduk) menuInduk.style.display = 'block';
         if (menuPra) menuPra.style.display = 'block';
+        if (btnPenilaianPra) btnPenilaianPra.style.display = 'block';
         if (btnEmelInduk) btnEmelInduk.style.display = 'block';
         if (btnEmelPra) btnEmelPra.style.display = 'block';
-        // Penilaian batch Pra SPeKS dikhaskan kepada ahli JK Pra SPeKS sahaja
-        if (btnPenilaianPra) btnPenilaianPra.style.display = 'none';
+        if (btnDokumenPra) btnDokumenPra.style.display = 'block';
       } else if (roleClean === 'Jawatan Kuasa Pra SPeKS') {
         if (menuPra) menuPra.style.display = 'block';
         if (btnPenilaianPra) btnPenilaianPra.style.display = 'block';
         if (btnEmelPra) btnEmelPra.style.display = 'none';
+        if (btnDokumenPra) btnDokumenPra.style.display = 'none';
       } else {
         if (btnEmelInduk) btnEmelInduk.style.display = 'none';
         if (btnEmelPra) btnEmelPra.style.display = 'none';
