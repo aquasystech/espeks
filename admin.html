@@ -873,7 +873,12 @@
           <div class="card border mb-3 shadow-sm rounded-3">
             <div class="card-header bg-light fw-bold small d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
               <span><i class="bi bi-list-check text-primary me-1"></i> Langkah 4: Penilaian Permohonan Layak</span>
-              <span class="badge bg-primary rounded-pill px-3 py-1" id="assessment-batch-active-count">0 Permohonan</span>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" id="btnHantarRumusanNegeriManual" class="btn btn-sm btn-primary fw-bold shadow-sm" style="display:none;" onclick="hantarRumusanNegeriManualUI()">
+                  <i class="bi bi-envelope-check-fill me-1"></i> Selesai Penilaian &amp; Maklumkan Urus Setia HQ
+                </button>
+                <span class="badge bg-primary rounded-pill px-3 py-1" id="assessment-batch-active-count">0 Permohonan</span>
+              </div>
             </div>
             <div class="table-responsive">
               <table class="table table-sm table-hover align-middle mb-0">
@@ -5980,6 +5985,11 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
       role: currentUser.role
     });
 
+  const btnRumusanNegeri = document.getElementById('btnHantarRumusanNegeriManual');
+  if (btnRumusanNegeri) {
+    btnRumusanNegeri.style.display = (activeBatchStage === 'negeri') ? 'inline-block' : 'none';
+  }
+
   const bodyA = document.getElementById('assessment-batch-active-list');
   if (bodyA) {
     bodyA.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuatkan senarai permohonan...</td></tr>';
@@ -6820,6 +6830,15 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
               else if (role === 'PIC HQ') statusBaru = 'TIDAK DISOKONG PIC HQ';
               else if (role === 'Jawatan Kuasa Pra SPeKS' || isUrusetiaPra) statusBaru = 'TIDAK SOKONG JK PRA SPEKS';
 
+              const batchBilTolak = (activeBatchPayload && activeBatchPayload.bilNumber) || (document.getElementById('assessment-batch-bil') ? document.getElementById('assessment-batch-bil').value : '');
+              const batchTahunTolak = (activeBatchPayload && activeBatchPayload.tahunMesyuarat) || (document.getElementById('assessment-batch-year') ? document.getElementById('assessment-batch-year').value : '');
+              const batchTarikhTolak = (activeBatchPayload && activeBatchPayload.tarikhMesyuarat) || (document.getElementById('assessment-batch-date') ? document.getElementById('assessment-batch-date').value : '');
+              let meetingTolak = '';
+              if (isUrusetiaNegeri && batchBilTolak && batchTahunTolak) {
+                const negTolak = String((currentUser && currentUser.negeri) || (activeApp && (activeApp['Negeri Perusahaan'] || activeApp.negeri)) || '').trim();
+                meetingTolak = `Mesyuarat Jawatan Kuasa SPeKS Negeri (${negTolak}) ${batchBilTolak}/ ${batchTahunTolak}`;
+              }
+
               google.script.run
                 .withSuccessHandler((res) => { 
                     if (activeBatchStage && activeBatchPayload) {
@@ -6842,6 +6861,8 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
                     ulasan: resInput.value, 
                     items: JSON.stringify(globalListItems || []), 
                     senaraiSemakDokumen: JSON.stringify(globalSemakanDokumen || {}), 
+                    bilMesyuarat: meetingTolak,
+                    tarikhMesyuarat: isUrusetiaNegeri ? batchTarikhTolak : '',
                     nilaiTotal: "0.00", 
                     files: []
                 });
@@ -10930,6 +10951,52 @@ let monthlyTrendChartInstance = null;
           role: currentUser.role,
           namaPegawai: currentUser.emel,
           ulasan: resInput.value
+        });
+    });
+  }
+function hantarRumusanNegeriManualUI() {
+    if (!currentUser || activeBatchStage !== 'negeri') return;
+
+    const bil = document.getElementById('assessment-batch-bil')?.value || '';
+    const tahun = document.getElementById('assessment-batch-year')?.value || '';
+    const negeri = currentUser.negeri || '';
+
+    if (!bil || !tahun) {
+      return Swal.fire('Maklumat Tidak Lengkap', 'Sila pastikan Bil. dan Tahun Mesyuarat telah dipilih di Langkah 1.', 'warning');
+    }
+
+    const meetingKey = `Mesyuarat Jawatan Kuasa SPeKS Negeri (${negeri}) ${bil}/ ${tahun}`;
+
+    Swal.fire({
+      title: 'Hantar E-mel Rumusan ke Urus Setia HQ?',
+      html: `Sistem akan mengumpul semua permohonan yang telah dinilai dalam <b>Mesyuarat JK SPeKS Negeri (${escapeHtmlInduk(negeri)}) ${escapeHtmlInduk(bil)}/${escapeHtmlInduk(tahun)}</b> dan menghantar 1 e-mel rumusan kepada semua <b>Urus Setia HQ</b> serta <b>aquasys@dof.gov.my</b>.<br><br><span class="text-muted small">Gunakan butang ini sekiranya terdapat permohonan lain yang ditangguhkan ke mesyuarat akan datang.</span>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#153f6a',
+      confirmButtonText: 'Ya, Hantar Makluman Sekarang',
+      cancelButtonText: 'Batal'
+    }).then(result => {
+      if (!result.isConfirmed) return;
+
+      Swal.fire({ title: 'Menghantar E-mel Rumusan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      google.script.run
+        .withSuccessHandler(res => {
+          Swal.close();
+          if (res && res.success) {
+            Swal.fire('Berjaya Dihantar', res.message, 'success');
+          } else {
+            Swal.fire('Perhatian', res ? res.message : 'Gagal menghantar rumusan.', 'warning');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.close();
+          Swal.fire('Ralat Pelayan', err.message, 'error');
+        })
+        .hantarRumusanPenilaianNegeriManual({
+          role: currentUser.role,
+          negeri: negeri,
+          meetingKey: meetingKey
         });
     });
   }
