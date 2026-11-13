@@ -672,6 +672,7 @@
           <option value="PELARASAN HARGA PEROLEHAN">Pelarasan Harga Perolehan</option>
           <option value="MENUNGGU PENGESAHAN JK SPEKS INDUK">Menunggu Pengesahan JK SPeKS Induk</option>
           <option value="DILULUSKAN">Diluluskan</option>
+          <option value="SERAHAN SEBAHAGIAN">Serahan Sebahagian</option>
           <option value="SELESAI SERAH BANTUAN">Selesai Serah Bantuan</option>
           <option value="DITOLAK">Ditolak</option>
         </select>
@@ -1239,7 +1240,10 @@
               <small class="text-white-50" style="font-size: 0.8rem;">Pengesahan Penyerahan Fizikal & Dokumen Akuan Penerimaan Pemohon di Tapak</small>
             </div>
           </div>
-          <span class="badge bg-warning text-dark px-3 py-2 fw-bold" id="at-badge-status">STATUS: DILULUSKAN</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-info text-dark px-3 py-2 fw-bold" id="at-badge-fasa">SERAHAN FASA 1</span>
+            <span class="badge bg-warning text-dark px-3 py-2 fw-bold" id="at-badge-status">STATUS: DILULUSKAN</span>
+          </div>
         </div>
 
         <div class="p-4 bg-light">
@@ -1247,7 +1251,7 @@
           <!-- Kad Butiran Permohonan & Pemohon -->
           <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
             <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-              <i class="bi bi-person-badge-fill me-2"></i>Maklumat Pemohon & Lokasi Serahan
+              <i class="bi bi-person-badge-fill me-2"></i>Maklumat Pemohon &amp; Lokasi Serahan
             </h6>
             <div class="row g-3" style="font-size: 0.88rem;">
               <div class="col-md-3">
@@ -1281,18 +1285,34 @@
             </div>
           </div>
 
+          <!-- Kad Sejarah Serahan Terdahulu (Dipapar jika sudah ada Fasa 1 / Fasa 2) -->
+          <div id="at-sejarah-fasa-card" class="card border-info shadow-sm rounded-3 p-3 mb-4 bg-white" style="display:none; border-left: 4px solid #0dcaf0 !important;">
+            <h6 class="fw-bold text-info-emphasis border-bottom pb-2 mb-3">
+              <i class="bi bi-clock-history me-2"></i>Sejarah Serahan Fasa Terdahulu
+            </h6>
+            <div id="at-sejarah-fasa-list" class="d-flex flex-column gap-2"></div>
+          </div>
+
           <!-- Kad Senarai Item Bantuan Yang Diluluskan -->
           <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
-            <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-              <i class="bi bi-check-circle-fill text-success me-2"></i>Item Bantuan Yang Diluluskan
-            </h6>
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2">
+              <h6 class="fw-bold text-primary m-0">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>Penjejakan Kuantiti Item Bantuan Diluluskan
+              </h6>
+              <button type="button" id="btnPenuhkanSemuaBaki" class="btn btn-outline-success btn-sm fw-bold" onclick="penuhkanSemuaBakiSerahan()">
+                <i class="bi bi-check-all me-1"></i> Serah Semua Baki Item
+              </button>
+            </div>
             <div class="table-responsive">
               <table class="table table-bordered table-sm align-middle mb-0" style="font-size: 0.85rem;">
-                <thead class="table-light">
+                <thead class="table-light text-center">
                   <tr>
-                    <th style="width: 50px;" class="text-center">Bil</th>
-                    <th>Perincian Item / Spesifikasi</th>
-                    <th style="width: 200px;" class="text-center">Status Penerimaan Pemohon</th>
+                    <th style="width: 45px;">Bil</th>
+                    <th class="text-start">Perincian Item / Spesifikasi</th>
+                    <th style="width: 110px;">Kuantiti Lulus</th>
+                    <th style="width: 120px;">Telah Diserahkan</th>
+                    <th style="width: 120px;">Baki Belum Serah</th>
+                    <th style="width: 165px;">Kuantiti Fasa Ini <span class="text-danger">*</span></th>
                   </tr>
                 </thead>
                 <tbody id="at-tbody-items">
@@ -1300,6 +1320,9 @@
                 </tbody>
               </table>
             </div>
+            <small class="text-muted d-block mt-2" style="font-size:0.75rem;">
+              *Masukkan angka <b>0</b> bagi item yang belum tiba pada fasa ini. Sistem akan mengekalkan status <b>SERAHAN SEBAHAGIAN</b> sehingga baki kesemua item menjadi <b>0</b>.
+            </small>
           </div>
 
           <!-- Borang Pengesahan & Muat Naik Gambar -->
@@ -3003,17 +3026,29 @@
 
         let btnCetakHtml = (st === 'DILULUSKAN' || st === 'SELESAI SERAH BANTUAN') ? ' <button class="btn btn-sm btn-info text-white py-1 px-2 ms-1 fw-bold" style="font-size:0.75rem;" onclick="cetakSuratLulusDariDashboard(\'' + app.id + '\')">🖨️ Surat</button>' : '';
 
-        // BUTANG AKUAN TERIMA & PELARASAN HARGA PEROLEHAN
+        // BUTANG AKUAN TERIMA BERPERINGKAT & PELARASAN HARGA PEROLEHAN
         const isPegawaiSerahan = ['FA PPD', 'KDP PPD', 'FA PPN', 'KCAN PPN'].includes(role);
         let btnAkuanTerimaHtml = '';
         let btnPelarasanHargaHtml = '';
+
+        let fasaBerikutnya = 1;
+        if (app['Rekod Serahan Berperingkat']) {
+          try {
+            const rekodParsed = JSON.parse(app['Rekod Serahan Berperingkat']);
+            if (rekodParsed && Array.isArray(rekodParsed.fasaList)) {
+              fasaBerikutnya = rekodParsed.fasaList.length + 1;
+            }
+          } catch (e) {}
+        }
 
         if (st === 'DILULUSKAN' && isPegawaiSerahan) {
           btnAkuanTerimaHtml = ' <button type="button" class="btn btn-sm btn-success py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaHalamanAkuanTerima(\'' + app.id + '\')"><i class="bi bi-box-seam-fill me-1"></i> Akuan Terima</button>';
           if (role === 'KCAN PPN') {
             btnPelarasanHargaHtml = ' <button type="button" class="btn btn-sm btn-warning text-dark py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaModalPelarasanHarga(\'' + app.id + '\')"><i class="bi bi-currency-exchange me-1"></i> Pelarasan Harga</button>';
           }
-        } else if (st === 'SELESAI SERAH BANTUAN') {
+        } else if (st === 'SERAHAN SEBAHAGIAN' && isPegawaiSerahan) {
+          btnAkuanTerimaHtml = ' <button type="button" class="btn btn-sm btn-primary py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaHalamanAkuanTerima(\'' + app.id + '\')"><i class="bi bi-box-seam-fill me-1"></i> Sambung Serahan (Fasa ' + fasaBerikutnya + ')</button>';
+        } else if (st === 'SELESAI SERAH BANTUAN' || (st === 'SERAHAN SEBAHAGIAN' && !isPegawaiSerahan)) {
           btnAkuanTerimaHtml = ' <button type="button" class="btn btn-sm btn-outline-success py-1 px-2 ms-1 fw-bold" style="font-size:0.75rem;" onclick="bukaHalamanAkuanTerima(\'' + app.id + '\', true)"><i class="bi bi-eye-fill me-1"></i> Bukti Serahan</button>';
         }
 
@@ -3028,11 +3063,13 @@
         let agingBadgeHtml = kiraAgingBadge(app.tarikhTerimaStage || app.tarikh, app.status);
 
         const statusTextRaw = String(app.status || '-').trim();
-        const statusColorClass = st.includes('DILULUSKAN')
+        const statusColorClass = (st.includes('DILULUSKAN') || st === 'SELESAI SERAH BANTUAN')
           ? 'bg-success text-white'
-          : (st.includes('TIDAK') || st.includes('TOLAK'))
-            ? 'bg-danger text-white'
-            : 'bg-warning text-dark';
+          : st === 'SERAHAN SEBAHAGIAN'
+            ? 'bg-info text-dark'
+            : (st.includes('TIDAK') || st.includes('TOLAK'))
+              ? 'bg-danger text-white'
+              : 'bg-warning text-dark';
         const isStatusPanjang = statusTextRaw.length > 18;
         const durasiCrawl = Math.max(7, Math.round(statusTextRaw.length * 0.28));
         const statusBadgeHtml = isStatusPanjang
@@ -9942,169 +9979,281 @@ let monthlyTrendChartInstance = null;
   // =========================================================================
   let currentAkuanApp = null;
 
-  function bukaHalamanAkuanTerima(appId, isReadOnly = false) {
-    const app = allAppData.find(a => a && (a.id === appId || a['ID Permohonan'] === appId));
-    if (!app) {
-      return Swal.fire('Ralat', 'Maklumat permohonan tidak ditemui.', 'error');
-    }
-    currentAkuanApp = app;
+  // =========================================================================
+  // MODUL AKUAN TERIMA BERPERINGKAT (FASA 1, FASA 2, FASA 3...)
+  // =========================================================================
+  let atCurrentItemsState = [];
+  let atNextPhaseNumber = 1;
 
-    // Sembunyikan bahagian lain
-    document.getElementById('main-table-container').style.display = 'none';
-    document.getElementById('hq-stats-section').style.display = 'none';
-    document.getElementById('filters-container').style.display = 'none';
-    if (document.getElementById('eval-section')) document.getElementById('eval-section').style.display = 'none';
+  function bukaHalamanAkuanTerima(appId, isViewOnly) {
+    if (!currentUser) return;
 
-    // Paparkan borang Akuan Terima
-    document.getElementById('akuan-terima-section').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    Swal.fire({ title: 'Memuatkan Rekod Kelulusan & Serahan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-    // Suntik Butiran Pemohon
-    document.getElementById('at-id').innerText = app.id || '-';
-    document.getElementById('at-nama').innerText = app.nama || app['Nama Pemohon'] || '-';
-    document.getElementById('at-ic').innerText = app.ic || app.noKp || app['No Kad Pengenalan'] || '-';
-    document.getElementById('at-tel').innerText = app.noTel || app['No Telefon'] || '-';
-    document.getElementById('at-lokasi').innerText = `${app.daerah || app['Daerah Perusahaan'] || '-'}, ${app.negeri || app['Negeri Perusahaan'] || '-'}`;
-    document.getElementById('at-kategori').innerText = app.kategori || app['Kategori Kumpulan Sasar'] || '-';
-    document.getElementById('at-mesyuarat').innerText = app.bilMesyuarat || app['Bil Mesyuarat Jawatan Kuasa'] || '-';
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close();
+        const app = res && res.data ? res.data : res;
+        if (!app) return Swal.fire('Ralat', 'Gagal memuatkan maklumat permohonan.', 'error');
 
-    const statusBadge = document.getElementById('at-badge-status');
-    statusBadge.innerText = `STATUS: ${app.status || 'DILULUSKAN'}`;
-    statusBadge.className = (app.status === 'SELESAI SERAH BANTUAN') ? 'badge bg-success px-3 py-2 fw-bold' : 'badge bg-warning text-dark px-3 py-2 fw-bold';
+        activeApp = app;
+        const stNorm = normaliseStatus(app['Status Semasa'] || '');
+        const readOnly = !!isViewOnly || (stNorm === 'SELESAI SERAH BANTUAN');
 
-    // Tetapkan Tarikh & Pegawai
-    const inputTarikh = document.getElementById('at-tarikh-serah');
-    inputTarikh.value = app['Tarikh Serah Bantuan'] || new Date().toISOString().split('T')[0];
-
-    const inputPegawai = document.getElementById('at-pegawai-penyerah');
-    inputPegawai.value = `${currentUser.nama || currentUser.emel} (${currentUser.role || ''})`;
-
-    document.getElementById('at-catatan').value = app['Catatan Akuan Terima'] || '';
-
-    // Senarai Item Diluluskan
-    const tbody = document.getElementById('at-tbody-items');
-    tbody.innerHTML = '';
-    const rawItems = app['Item Dicadangkan (Jawatan Kuasa SPeKS Induk)'] || app['Item Dicadangkan (Urusetia HQ)'] || app['Item Dicadangkan'] || '';
-    
-    if (rawItems && rawItems !== '-') {
-      let senaraiTeks = [];
-      try {
-        const parsed = JSON.parse(rawItems);
-        if (Array.isArray(parsed)) {
-          senaraiTeks = parsed.filter(it => it && (it.sokong === true || it.sokongan === 'SOKONG')).map(it => `${it.item} (Kuantiti: ${it.qty})`);
-        }
-      } catch (e) {
-        senaraiTeks = rawItems.split('\n').filter(b => b.trim() !== '');
-      }
-
-      if (senaraiTeks.length > 0) {
-        senaraiTeks.forEach((itemTeks, idx) => {
-          tbody.innerHTML += `
-            <tr>
-              <td class="text-center fw-bold">${idx + 1}</td>
-              <td class="fw-semibold text-dark">${itemTeks}</td>
-              <td class="text-center">
-                <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
-                  <i class="bi bi-check2-circle me-1"></i> Diterima Lengkap
-                </span>
-              </td>
-            </tr>`;
+        // Sembunyikan seksyen lain & paparkan halaman penuh Akuan Terima
+        [
+          'main-table-container', 'hq-stats-section', 'eval-section',
+          'minit-master-section', 'minit-negeri-section', 'minit-pra-section',
+          'assessment-batch-section', 'analisis-peruntukan-section',
+          'jk-induk-bulk-action-bar', 'batch-mesyuarat-induk-section'
+        ].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
         });
-      } else {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Tiada rekod item spesifik ditemui.</td></tr>`;
-      }
-    } else {
-      tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Tiada rekod item spesifik ditemui.</td></tr>`;
-    }
+        const filters = document.getElementById('filters-container');
+        if (filters) filters.style.display = 'none';
+        const subNav = document.querySelector('.sub-nav-container');
+        if (subNav) subNav.style.display = 'none';
 
-    // Mod Papar Sahaja (Jika sudah SELESAI SERAH BANTUAN)
-    const btnHantar = document.getElementById('btn-hantar-akuan-terima');
-    const pBorang = document.getElementById('at-preview-borang-link');
-    const pItem = document.getElementById('at-preview-item-link');
+        document.getElementById('akuan-terima-section').style.display = 'block';
+        document.getElementById('akuan-terima-section').scrollIntoView({ behavior: 'auto', block: 'start' });
 
-    if (isReadOnly || app.status === 'SELESAI SERAH BANTUAN') {
-      btnHantar.style.display = 'none';
-      inputTarikh.disabled = true;
-      document.getElementById('at-fail-borang').style.display = 'none';
-      document.getElementById('at-fail-item').style.display = 'none';
-      document.getElementById('at-catatan').disabled = true;
+        // Isi maklumat pemohon & lokasi
+        document.getElementById('at-id').innerText = app['ID Permohonan'] || appId;
+        document.getElementById('at-nama').innerText = app['Nama Pemohon'] || '-';
+        document.getElementById('at-ic').innerText = app['No Kad Pengenalan'] || '-';
+        document.getElementById('at-tel').innerText = app['No Telefon'] || '-';
+        document.getElementById('at-lokasi').innerText = `${app['Daerah Perusahaan'] || '-'}, ${app['Negeri Perusahaan'] || '-'}`;
+        document.getElementById('at-kategori').innerText = app['Kategori Projek'] || app['Kategori Kumpulan Sasar'] || '-';
+        document.getElementById('at-mesyuarat').innerText = app['Bil Mesyuarat Jawatan Kuasa'] || '-';
+        document.getElementById('at-badge-status').innerText = 'STATUS: ' + (app['Status Semasa'] || 'DILULUSKAN');
 
-      if (app['Pautan Borang Akuan Terima']) {
-        pBorang.style.display = 'block';
-        pBorang.innerHTML = `<a href="${app['Pautan Borang Akuan Terima']}" target="_blank" class="btn btn-sm btn-outline-primary fw-bold"><i class="bi bi-file-earmark-pdf me-1"></i> Lihat Dokumen Borang Akuan Terima</a>`;
-      }
-      if (app['Pautan Gambar Item Bantuan']) {
-        pItem.style.display = 'block';
-        pItem.innerHTML = `<a href="${app['Pautan Gambar Item Bantuan']}" target="_blank" class="btn btn-sm btn-outline-success fw-bold"><i class="bi bi-images me-1"></i> Lihat Foto Serahan di Drive</a>`;
-      }
-    } else {
-      btnHantar.style.display = 'inline-block';
-      inputTarikh.disabled = false;
-      document.getElementById('at-fail-borang').style.display = 'block';
-      document.getElementById('at-fail-item').style.display = 'block';
-      document.getElementById('at-catatan').disabled = false;
-      pBorang.style.display = 'none';
-      pItem.style.display = 'none';
-    }
+        // Parse rekod sejarah serahan berperingkat sedia ada
+        let fasaList = [];
+        if (app['Rekod Serahan Berperingkat']) {
+          try {
+            const parsedRekod = JSON.parse(app['Rekod Serahan Berperingkat']);
+            if (parsedRekod && Array.isArray(parsedRekod.fasaList)) {
+              fasaList = parsedRekod.fasaList;
+            }
+          } catch (e) {}
+        }
+
+        atNextPhaseNumber = fasaList.length + 1;
+        const badgeFasa = document.getElementById('at-badge-fasa');
+        if (badgeFasa) {
+          badgeFasa.innerText = readOnly
+            ? `REKOD LENGKAP (${fasaList.length} FASA)`
+            : `SERAHAN FASA ${atNextPhaseNumber}`;
+        }
+
+        // Papar Kad Sejarah Serahan Terdahulu (Fasa 1, Fasa 2, dll.)
+        const cardSejarah = document.getElementById('at-sejarah-fasa-card');
+        const listSejarah = document.getElementById('at-sejarah-fasa-list');
+        if (fasaList.length > 0 && cardSejarah && listSejarah) {
+          cardSejarah.style.display = 'block';
+          listSejarah.innerHTML = fasaList.map(f => {
+            const itemsRingkas = (f.items || [])
+              .filter(it => parseFloat(it.qtySerahFasaIni) > 0)
+              .map(it => `${escapeHtmlInduk(it.item)} (<b>+${it.qtySerahFasaIni}</b>)`)
+              .join(', ') || 'Tiada perubahan kuantiti';
+
+            const btnBorang = f.borangUrl
+              ? `<a href="${f.borangUrl}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2 fw-bold"><i class="bi bi-file-earmark-check me-1"></i>Borang Fasa ${f.fasa}</a>`
+              : '';
+            const btnGambar = (f.itemUrls || []).map((u, idx) =>
+              `<a href="${u}" target="_blank" class="btn btn-outline-success btn-sm py-0 px-2"><i class="bi bi-image me-1"></i>Foto ${idx + 1}</a>`
+            ).join(' ');
+
+            return `
+              <div class="p-2 border rounded bg-light small">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                  <span class="badge bg-primary">FASA ${f.fasa} — Tarikh Serah: ${escapeHtmlInduk(f.tarikhSerah || '-')}</span>
+                  <span class="text-muted" style="font-size:0.75rem;">Oleh: <b>${escapeHtmlInduk(f.pegawai || '-')}</b></span>
+                </div>
+                <div class="mb-1"><b>Item Diserahkan:</b> ${itemsRingkas}</div>
+                <div class="text-muted mb-2"><b>Catatan:</b> ${escapeHtmlInduk(f.catatan || '-')}</div>
+                <div class="d-flex flex-wrap gap-1">${btnBorang} ${btnGambar}</div>
+              </div>
+            `;
+          }).join('');
+        } else if (cardSejarah) {
+          cardSejarah.style.display = 'none';
+        }
+
+        // Ekstrak item diluluskan JK SPeKS Induk & kira jumlah telah diserahkan bagi setiap item
+        const snapshots = app._snapshots || {};
+        const rawItemsInduk = (snapshots['Jawatan Kuasa SPeKS Induk'] && snapshots['Jawatan Kuasa SPeKS Induk'].length > 0)
+          ? snapshots['Jawatan Kuasa SPeKS Induk']
+          : parseItemsAsalPemohon(app);
+
+        const diserahkanMap = {};
+        fasaList.forEach(f => {
+          (f.items || []).forEach(it => {
+            const key = String(it.index);
+            diserahkanMap[key] = (diserahkanMap[key] || 0) + (parseFloat(it.qtySerahFasaIni) || 0);
+          });
+        });
+
+        atCurrentItemsState = [];
+        const tbody = document.getElementById('at-tbody-items');
+        let bilPaparan = 0;
+
+        tbody.innerHTML = rawItemsInduk.map((it, idx) => {
+          const isSokong = (it.sokongan === 'SOKONG' || it.sokong === true || it.sokong === 'true' || it.sokong === undefined);
+          const qtyLulus = isSokong ? (parseFloat(it.qty) || 0) : 0;
+          if (qtyLulus <= 0) return '';
+
+          bilPaparan++;
+          const qtySudah = diserahkanMap[String(idx)] || 0;
+          const baki = Math.max(0, qtyLulus - qtySudah);
+
+          atCurrentItemsState.push({
+            index: idx,
+            item: it.item || 'Item Bantuan',
+            qtyLulus: qtyLulus,
+            qtyTelahSerahSebelum: qtySudah,
+            baki: baki
+          });
+
+          const inputCellHtml = readOnly
+            ? '<span class="badge bg-success">Selesai</span>'
+            : (baki <= 0
+              ? '<span class="badge bg-success-subtle text-success border border-success px-2 py-1">Lengkap (Baki 0)</span>'
+              : `<input type="number" min="0" max="${baki}" step="1" class="form-control form-control-sm text-center fw-bold text-primary input-qty-serah-fasa" data-idx="${idx}" data-baki="${baki}" value="${baki}" oninput="hadkanInputBakiSerahan(this)">`);
+
+          return `
+            <tr class="${baki <= 0 ? 'table-success bg-opacity-10' : ''}">
+              <td class="text-center fw-bold">${bilPaparan}</td>
+              <td class="fw-semibold">${escapeHtmlInduk(it.item || '-')}</td>
+              <td class="text-center fw-bold text-primary">${qtyLulus}</td>
+              <td class="text-center fw-bold text-success">${qtySudah}</td>
+              <td class="text-center fw-bold ${baki > 0 ? 'text-danger' : 'text-muted'}">${baki}</td>
+              <td class="text-center">${inputCellHtml}</td>
+            </tr>
+          `;
+        }).join('');
+
+        // Kawal paparan borang muat naik (sembunyikan jika mod paparan bukti sahaja)
+        const formEl = document.getElementById('formAkuanTerima');
+        const btnPenuhkan = document.getElementById('btnPenuhkanSemuaBaki');
+        if (formEl) formEl.style.display = readOnly ? 'none' : 'block';
+        if (btnPenuhkan) btnPenuhkan.style.display = readOnly ? 'none' : 'inline-block';
+
+        if (!readOnly) {
+          document.getElementById('at-tarikh-serah').value = new Date().toISOString().split('T')[0];
+          document.getElementById('at-pegawai-penyerah').value = `${currentUser.nama} (${currentUser.role})`;
+          document.getElementById('at-fail-borang').value = '';
+          document.getElementById('at-fail-item').value = '';
+          document.getElementById('at-catatan').value = '';
+        }
+      })
+      .withFailureHandler(err => {
+        Swal.close();
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .ambilDataPermohonan(appId);
+  }
+
+  function hadkanInputBakiSerahan(inp) {
+    const maxBaki = parseFloat(inp.dataset.baki) || 0;
+    let val = parseFloat(inp.value);
+    if (isNaN(val) || val < 0) inp.value = 0;
+    else if (val > maxBaki) inp.value = maxBaki;
+  }
+
+  function penuhkanSemuaBakiSerahan() {
+    document.querySelectorAll('.input-qty-serah-fasa').forEach(inp => {
+      inp.value = inp.dataset.baki || 0;
+    });
   }
 
   function kembaliDariAkuanTerima() {
-    document.getElementById('akuan-terima-section').style.display = 'none';
-    document.getElementById('main-table-container').style.display = 'block';
-    document.getElementById('filters-container').style.display = 'flex';
-    const canSeeStats = ["Jawatan Kuasa SPeKS Induk", "Jawatan Kuasa Pra SPeKS", "Urusetia HQ", "FA HQ", "Jawatan Kuasa SPeKS Negeri", "PIC HQ"].indexOf(currentUser.role) !== -1;
-    if (canSeeStats && document.getElementById('btn-dashboard')?.classList.contains('active')) {
-      document.getElementById('hq-stats-section').style.display = 'block';
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const secAT = document.getElementById('akuan-terima-section');
+    if (secAT) secAT.style.display = 'none';
+    showSection('table');
   }
 
   async function hantarBorangAkuanTerima() {
-    if (!currentAkuanApp) return;
+    if (!activeApp || !currentUser) return;
 
+    const appId = activeApp['ID Permohonan'] || activeApp.id;
     const tarikhSerah = document.getElementById('at-tarikh-serah').value;
     const failBorangInput = document.getElementById('at-fail-borang');
     const failItemInput = document.getElementById('at-fail-item');
+    const catatan = document.getElementById('at-catatan').value.trim();
 
     if (!tarikhSerah) {
-      return Swal.fire('Maklumat Tidak Lengkap', 'Sila pilih tarikh serahan fizikal.', 'warning');
-    }
-    if (!failBorangInput.files || failBorangInput.files.length === 0) {
-      return Swal.fire('Dokumen Diperlukan', 'Sila muat naik foto borang akuan terima bertandatangan.', 'warning');
-    }
-    if (!failItemInput.files || failItemInput.files.length === 0) {
-      return Swal.fire('Gambar Diperlukan', 'Sila muat naik sekurang-kurangnya 1 keping foto item bantuan / serahan di tapak.', 'warning');
+      return Swal.fire('Tarikh Diperlukan', 'Sila pilih Tarikh Serahan Fizikal.', 'warning');
     }
 
-    const confirmRes = await Swal.fire({
-      title: 'Sahkan Penyerahan Bantuan?',
-      text: 'Status permohonan akan dikemaskini kepada SELESAI SERAH BANTUAN dan dokumen bukti akan disimpan ke sistem.',
+    // Kumpul kuantiti serahan fasa ini
+    const inputMap = {};
+    document.querySelectorAll('.input-qty-serah-fasa').forEach(inp => {
+      inputMap[String(inp.dataset.idx)] = parseFloat(inp.value) || 0;
+    });
+
+    let adaDiserahkan = false;
+    let jumlahBakiSelepas = 0;
+
+    const itemSerahanPayload = atCurrentItemsState.map(stItem => {
+      const qFasaIni = stItem.baki > 0 ? (inputMap[String(stItem.index)] || 0) : 0;
+      if (qFasaIni > 0) adaDiserahkan = true;
+      const bakiSelepas = Math.max(0, stItem.baki - qFasaIni);
+      jumlahBakiSelepas += bakiSelepas;
+
+      return {
+        index: stItem.index,
+        item: stItem.item,
+        qtyLulus: stItem.qtyLulus,
+        qtyTelahSerahSebelum: stItem.qtyTelahSerahSebelum,
+        qtySerahFasaIni: qFasaIni
+      };
+    });
+
+    if (!adaDiserahkan) {
+      return Swal.fire('Kuantiti Kosong', 'Sila masukkan kuantiti sekurang-kurangnya bagi SATU (1) item yang diserahkan dalam fasa ini.', 'warning');
+    }
+
+    if (!failBorangInput.files || failBorangInput.files.length === 0) {
+      return Swal.fire('Dokumen Wajib', `Sila muat naik gambar Borang Akuan Terima bertandatangan bagi Serahan Fasa ${atNextPhaseNumber}.`, 'warning');
+    }
+
+    if (!failItemInput.files || failItemInput.files.length === 0) {
+      return Swal.fire('Gambar Item Wajib', `Sila muat naik sekurang-kurangnya 1 gambar penyerahan item di tapak bagi Serahan Fasa ${atNextPhaseNumber}.`, 'warning');
+    }
+
+    if (failItemInput.files.length > 5) {
+      return Swal.fire('Had Gambar', 'Maksimum 5 keping gambar item dibenarkan bagi setiap fasa serahan.', 'warning');
+    }
+
+    const jangkaanStatus = jumlahBakiSelepas === 0 ? 'SELESAI SERAH BANTUAN' : 'SERAHAN SEBAHAGIAN';
+    const notaBakiHtml = jumlahBakiSelepas === 0
+      ? '<span class="text-success fw-bold">Kesemua item telah diserahkan (Baki = 0).</span>'
+      : `<span class="text-primary fw-bold">Masih terdapat baki item yang belum diserahkan. Anda boleh menyambung serahan Fasa ${atNextPhaseNumber + 1} apabila baki barang tiba.</span>`;
+
+    const confirm = await Swal.fire({
+      title: `Sahkan Serahan Fasa ${atNextPhaseNumber}?`,
+      html: `Rekod serahan <b>Fasa ${atNextPhaseNumber}</b> akan disimpan dan status permohonan akan dikemaskini kepada <b>${jangkaanStatus}</b>.<br><br>${notaBakiHtml}`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#198754',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Ya, Sahkan Serahan',
-      cancelButtonText: 'Batal'
+      confirmButtonText: `Ya, Sahkan Fasa ${atNextPhaseNumber}`,
+      cancelButtonText: 'Semak Semula'
     });
 
-    if (!confirmRes.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
-    Swal.fire({
-      title: 'Memproses Muat Naik...',
-      html: 'Memuat naik dokumen dan gambar serahan ke Google Drive. Sila tunggu sebentar...',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading()
-    });
+    Swal.fire({ title: `Menyimpan Serahan Fasa ${atNextPhaseNumber}...`, allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     try {
-      const fileBorang = failBorangInput.files[0];
-      const borangBase64 = await readFileAsBase64_(fileBorang);
+      const fBorang = failBorangInput.files[0];
+      const b64Borang = await toBase64(fBorang);
 
-      const senaraiGambarItem = [];
-      for (let i = 0; i < failItemInput.files.length; i++) {
-        const f = failItemInput.files[i];
-        const b64 = await readFileAsBase64_(f);
-        senaraiGambarItem.push({
+      const senaraiFailItem = [];
+      for (let f of failItemInput.files) {
+        const b64 = await toBase64(f);
+        senaraiFailItem.push({
           fileName: f.name,
           mimeType: f.type,
           base64: b64
@@ -10112,43 +10261,41 @@ let monthlyTrendChartInstance = null;
       }
 
       const payload = {
-        appId: currentAkuanApp.id,
+        appId: appId,
         tarikhSerah: tarikhSerah,
-        catatan: document.getElementById('at-catatan').value.trim(),
-        pegawaiNama: currentUser.nama || currentUser.emel,
-        pegawaiEmel: currentUser.emel,
+        pegawaiNama: currentUser.nama,
         pegawaiRole: currentUser.role,
+        catatan: catatan,
+        itemSerahan: itemSerahanPayload,
         failBorang: {
-          fileName: fileBorang.name,
-          mimeType: fileBorang.type,
-          base64: borangBase64
+          fileName: fBorang.name,
+          mimeType: fBorang.type,
+          base64: b64Borang
         },
-        senaraiFailItem: senaraiGambarItem
+        senaraiFailItem: senaraiFailItem
       };
 
       google.script.run
         .withSuccessHandler(res => {
+          Swal.close();
           if (res && res.success) {
-            Swal.fire({
-              title: 'Berjaya Disahkan!',
-              text: 'Akuan terima dan bukti penyerahan item bantuan telah berjaya direkodkan.',
-              icon: 'success',
-              confirmButtonColor: '#153f6a'
-            }).then(() => {
+            Swal.fire('Berjaya Direkodkan', res.message, 'success').then(() => {
               kembaliDariAkuanTerima();
               loadTable();
             });
           } else {
-            Swal.fire('Gagal Menyimpan', res ? res.message : 'Sila cuba lagi.', 'error');
+            Swal.fire('Gagal', res ? res.message : 'Ralat semasa menyimpan rekod serahan.', 'error');
           }
         })
         .withFailureHandler(err => {
+          Swal.close();
           Swal.fire('Ralat Pelayan', err.message, 'error');
         })
         .simpanBorangAkuanTerima(payload);
 
     } catch (err) {
-      Swal.fire('Ralat Memproses Fail', err.message, 'error');
+      Swal.close();
+      Swal.fire('Ralat Fail', err.message, 'error');
     }
   }
 
