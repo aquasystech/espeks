@@ -636,6 +636,7 @@
           <option value="DISOKONG URUSETIA HQ">Disokong Urus Setia HQ</option>
           <option value="DISOKONG PIC HQ">Disokong PIC HQ</option>
           <option value="KELULUSAN JK PRA SPEKS">Kelulusan JK Pra SPeKS</option>
+          <option value="PELARASAN HARGA PEROLEHAN">Pelarasan Harga Perolehan</option>
           <option value="MENUNGGU PENGESAHAN JK SPEKS INDUK">Menunggu Pengesahan JK SPeKS Induk</option>
           <option value="DILULUSKAN">Diluluskan</option>
           <option value="SELESAI SERAH BANTUAN">Selesai Serah Bantuan</option>
@@ -1652,6 +1653,47 @@
           </div>
         </div>
 
+        <!-- KAD PERBANDINGAN PELARASAN HARGA PEROLEHAN (DIPAPAR JIKA AKTIF) -->
+        <div id="cardPerbandinganPelarasanHarga" class="card border-warning shadow-sm mb-4 rounded-3" style="display:none; border-left: 5px solid #fd7e14 !important; background: #fffdf7;">
+          <div class="card-header bg-warning-subtle text-dark fw-bold py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-currency-exchange text-danger me-2"></i>PERBANDINGAN PELARASAN HARGA PEROLEHAN (UNTUK TIMBANGAN JK SPEKS INDUK)</span>
+            <span class="badge bg-danger px-2 py-1" id="pelarasanBadgeKenaikan">+RM 0.00 (0.0%)</span>
+          </div>
+          <div class="card-body p-3">
+            <div class="row g-3 mb-3 text-center">
+              <div class="col-md-4">
+                <div class="p-2 border rounded bg-white">
+                  <small class="text-muted d-block fw-bold">SILING DILULUSKAN ASAL</small>
+                  <span class="fs-5 fw-bold text-primary" id="pelarasanNilaiAsalDisplay">RM 0.00</span>
+                  <small class="text-muted d-block" id="pelarasanInfoSidangAsal">-</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-2 border rounded bg-white">
+                  <small class="text-muted d-block fw-bold">HARGA SEBUT HARGA BAHARU</small>
+                  <span class="fs-5 fw-bold text-danger" id="pelarasanNilaiBaharuDisplay">RM 0.00</span>
+                  <small class="text-muted d-block" id="pelarasanInfoPemohon">Dimohon oleh KCAN PPN</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-2 border rounded bg-white">
+                  <small class="text-muted d-block fw-bold">PERBEZAAN / TAMBAHAN BAJET</small>
+                  <span class="fs-5 fw-bold text-warning-emphasis" id="pelarasanBezaDisplay">RM 0.00</span>
+                  <small class="text-muted d-block">Menggantikan siling lama jika lulus</small>
+                </div>
+              </div>
+            </div>
+            <div class="mb-2 small">
+              <b>Justifikasi Kenaikan Harga (KCAN PPN):</b>
+              <div class="p-2 bg-white border rounded text-dark mt-1" id="pelarasanJustifikasiDisplay">-</div>
+            </div>
+            <div class="small">
+              <b>Dokumen Sebut Harga Perbandingan:</b>
+              <div id="pelarasanSenaraiFailDisplay" class="d-flex flex-wrap gap-2 mt-1"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- 2. BAHAGIAN 1: PROFIL PEMOHON & PERUSAHAAN -->
         <div id="sec-pemohon" class="card border-0 shadow-sm mb-4 rounded-3">
           <div class="card-header bg-primary text-white fw-bold py-2 d-flex justify-content-between align-items-center">
@@ -2186,6 +2228,78 @@
   </div>
 </div>
 
+<!-- MODAL PELARASAN HARGA PEROLEHAN (KHAS UNTUK KCAN PPN) -->
+<div class="modal fade" id="modalPelarasanHargaPerolehan" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header bg-warning text-dark py-3 px-4">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-currency-exchange fs-4"></i>
+          <div>
+            <h6 class="modal-title fw-bold mb-0">Permohonan Pelarasan Harga Perolehan (Angkat Semula ke JK SPeKS Induk)</h6>
+            <small class="text-dark-emphasis" style="font-size:0.75rem;">Kemas kini harga sebut harga terkini dan muat naik sekurang-kurangnya 2 sebut harga perbandingan</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body p-4 bg-light">
+        <input type="hidden" id="pelarasanAppId">
+        <div class="alert alert-light border shadow-sm py-2 px-3 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 small">
+          <div>ID Permohonan: <strong class="text-primary" id="pelarasanModalIdDisplay">-</strong> &nbsp;|&nbsp; Pemohon: <strong id="pelarasanModalNamaDisplay">-</strong></div>
+          <div>Siling Lulus Asal: <strong class="text-success fs-6" id="pelarasanModalSilingAsal">RM 0.00</strong></div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-header bg-white fw-bold small py-2">Senarai Item Diluluskan — Masukkan Harga Seunit Baharu Mengikut Sebut Harga</div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle mb-0 small">
+              <thead class="table-light text-center">
+                <tr>
+                  <th style="width:45px;">Bil</th>
+                  <th class="text-start">Perincian Item Diluluskan</th>
+                  <th style="width:80px;">Kuantiti</th>
+                  <th style="width:130px;">Harga Lulus Asal (RM)</th>
+                  <th style="width:150px;">Harga Baharu (RM) <span class="text-danger">*</span></th>
+                  <th style="width:140px;">Jumlah Baharu (RM)</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyModalPelarasanItems"></tbody>
+              <tfoot class="table-light fw-bold">
+                <tr>
+                  <td colspan="5" class="text-end">JUMLAH KESELURUHAN BAHARU DIMOHON (RM):</td>
+                  <td class="text-center text-danger fs-6" id="pelarasanModalJumlahBaharu">RM 0.00</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">
+              <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Muat Naik Sebut Harga Perbandingan (Min. 2 Fail) <span class="text-danger">*</span>
+            </label>
+            <input type="file" id="pelarasanFailSebutHarga" class="form-control form-control-sm shadow-sm" multiple accept=".pdf,image/*">
+            <small class="text-danger fw-semibold d-block mt-1" style="font-size:0.72rem;">*Wajib pilih sekurang-kurangnya 2 dokumen sebut harga daripada pembekal berbeza untuk semakan audit.</small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">
+              <i class="bi bi-chat-left-text-fill text-primary me-1"></i> Justifikasi Kenaikan Harga Perolehan <span class="text-danger">*</span>
+            </label>
+            <textarea id="pelarasanJustifikasiInput" class="form-control form-control-sm shadow-sm" rows="3" placeholder="Nyatakan sebab harga perolehan semasa melebihi siling bajet yang diluluskan..." required></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-white py-2 px-4 d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-secondary btn-sm fw-bold" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold px-4 shadow-sm" onclick="hantarPelarasanHargaPerolehan()">
+          <i class="bi bi-send-check-fill me-1"></i> Hantar ke Urus Setia HQ (Sidang JK Induk)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PANDUAN PENGISIAN eSPeKS -->
 <div class="modal fade" id="modalPanduanPengisian" tabindex="-1" aria-labelledby="tajukModalPanduan" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
@@ -2286,6 +2400,7 @@
     'DISOKONG URUS SETIA HQ': 'Disokong Urus Setia HQ',
     'DISOKONG PIC HQ': 'Disokong PIC HQ',
     'KELULUSAN JK PRA SPEKS': 'Kelulusan JK Pra SPeKS',
+    'PELARASAN HARGA PEROLEHAN': 'Pelarasan Harga Perolehan',
     'MENUNGGU PENGESAHAN JK SPEKS INDUK': 'Menunggu Pengesahan JK SPeKS Induk',
     'DILULUSKAN': 'Diluluskan',
     'DITOLAK': 'Ditolak',
@@ -2663,7 +2778,7 @@
         return (st === 'DISOKONG PIC HQ' || st === 'TIDAK DISOKONG PIC HQ'); // <-- TAMBAH STATUS INI
       } 
       else if (role === 'Urusetia HQ') {
-        return (st === 'KELULUSAN JK PRA SPEKS');
+        return (st === 'KELULUSAN JK PRA SPEKS' || st === 'PELARASAN HARGA PEROLEHAN');
       }
       else if (role === 'Jawatan Kuasa SPeKS Induk') {
         return (st === 'MENUNGGU PENGESAHAN JK SPEKS INDUK');
@@ -2847,11 +2962,16 @@
 
         let btnCetakHtml = (st === 'DILULUSKAN' || st === 'SELESAI SERAH BANTUAN') ? ' <button class="btn btn-sm btn-info text-white py-1 px-2 ms-1 fw-bold" style="font-size:0.75rem;" onclick="cetakSuratLulusDariDashboard(\'' + app.id + '\')">🖨️ Surat</button>' : '';
 
-        // BUTANG AKUAN TERIMA KHAS UNTUK PEGAWAI OPERASI (FA PPD, KDP PPD, FA PPN, KCAN PPN)
+        // BUTANG AKUAN TERIMA & PELARASAN HARGA PEROLEHAN
         const isPegawaiSerahan = ['FA PPD', 'KDP PPD', 'FA PPN', 'KCAN PPN'].includes(role);
         let btnAkuanTerimaHtml = '';
+        let btnPelarasanHargaHtml = '';
+
         if (st === 'DILULUSKAN' && isPegawaiSerahan) {
           btnAkuanTerimaHtml = ' <button type="button" class="btn btn-sm btn-success py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaHalamanAkuanTerima(\'' + app.id + '\')"><i class="bi bi-box-seam-fill me-1"></i> Akuan Terima</button>';
+          if (role === 'KCAN PPN') {
+            btnPelarasanHargaHtml = ' <button type="button" class="btn btn-sm btn-warning text-dark py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaModalPelarasanHarga(\'' + app.id + '\')"><i class="bi bi-currency-exchange me-1"></i> Pelarasan Harga</button>';
+          }
         } else if (st === 'SELESAI SERAH BANTUAN') {
           btnAkuanTerimaHtml = ' <button type="button" class="btn btn-sm btn-outline-success py-1 px-2 ms-1 fw-bold" style="font-size:0.75rem;" onclick="bukaHalamanAkuanTerima(\'' + app.id + '\', true)"><i class="bi bi-eye-fill me-1"></i> Bukti Serahan</button>';
         }
@@ -2878,8 +2998,8 @@
           dropdownPicHQHtml +
 
           '<td><div class="d-flex align-items-center flex-wrap gap-1">' +
-          ((role === 'Urusetia HQ' && st === 'KELULUSAN JK PRA SPEKS')
-            ? '<button type="button" class="btn btn-sm btn-success py-1 px-2" onclick="bukaHalamanBatch(\'induk\')">Pengurusan Senarai Induk</button>'
+          ((role === 'Urusetia HQ' && (st === 'KELULUSAN JK PRA SPEKS' || st === 'PELARASAN HARGA PEROLEHAN'))
+            ? '<button type="button" class="btn btn-sm ' + (st === 'PELARASAN HARGA PEROLEHAN' ? 'btn-warning text-dark fw-bold' : 'btn-success') + ' py-1 px-2" onclick="bukaHalamanBatch(\'induk\')">' + (st === 'PELARASAN HARGA PEROLEHAN' ? 'Penilaian Pelarasan Induk' : 'Pengurusan Senarai Induk') + '</button>'
             : (role === 'Jawatan Kuasa SPeKS Negeri' && (st === 'DISOKONG KCAN PPN' || st === 'TIDAK DISOKONG KCAN PPN'))
               ? '<button type="button" class="btn btn-sm btn-success py-1 px-2" onclick="bukaHalamanBatch(\'negeri\')">Penilaian JK SPeKS Negeri</button>'
               : (role === 'Jawatan Kuasa Pra SPeKS' && (st === 'DISOKONG PIC HQ' || st === 'TIDAK DISOKONG PIC HQ'))
@@ -2887,7 +3007,7 @@
                 : (actionType === 'confirm-induk'
                   ? '<button type="button" class="btn btn-sm ' + btnClass + ' py-1 px-3" onclick="openEval(\'' + app.id + '\', \'confirm-induk\')">' + btnLabel + '</button>'
                   : '<button type="button" class="btn btn-sm ' + btnClass + ' py-1 px-3" onclick="openEval(\'' + app.id + '\', \'' + actionType + '\')">' + btnLabel + '</button>'))
-          btnCetakHtml + btnAkuanTerimaHtml + btnMinitHtml + btnViewMinitHtml + '</div></td>' +
+          btnCetakHtml + btnAkuanTerimaHtml + btnPelarasanHargaHtml + btnMinitHtml + btnViewMinitHtml + '</div></td>' +
         '</tr>';
     }).join('');
   }
@@ -3384,8 +3504,9 @@
 
         var isPastStage = semakStatusLepasPeringkat(r, statusSemasaNorm);
 
+        var isPelarasanHargaInduk = (statusSemasaNorm === 'PELARASAN HARGA PEROLEHAN');
         // Urusetia HQ dibenarkan menilai bagi pihak JK Induk atau JK Pra SPeKS
-        var isUrusetiaHQPenilai = (r === 'Urusetia HQ' && statusSemasaNorm === 'KELULUSAN JK PRA SPEKS');
+        var isUrusetiaHQPenilai = (r === 'Urusetia HQ' && (statusSemasaNorm === 'KELULUSAN JK PRA SPEKS' || isPelarasanHargaInduk));
         var isUrusetiaPraPenilai = (r === 'Urusetia HQ' && (activeBatchStage === 'pra' || statusSemasaNorm === 'DISOKONG PIC HQ' || statusSemasaNorm === 'TIDAK DISOKONG PIC HQ'));
         window.isUrusetiaPraPenilaiGlobal = isUrusetiaPraPenilai;
 
@@ -3668,6 +3789,53 @@
           sourceItems = JSON.parse(JSON.stringify(window.applicantOriginalItems));
         }
 
+        // Papar Kad Perbandingan Pelarasan Harga & isi harga baharu ke lajur JK Induk tanpa ubah sejarah
+        const cardPelarasan = document.getElementById('cardPerbandinganPelarasanHarga');
+        if (app._pelarasanData && (app._pelarasanData.aktif || isPelarasanHargaInduk)) {
+          const pData = app._pelarasanData;
+          const nAsal = parseFloat(pData.nilaiLulusAsal || 0);
+          const nBaharu = parseFloat(pData.nilaiBaharu || 0);
+          const beza = nBaharu - nAsal;
+          const pct = nAsal > 0 ? ((beza / nAsal) * 100).toFixed(1) : '0.0';
+
+          if (cardPelarasan) {
+            cardPelarasan.style.display = 'block';
+            document.getElementById('pelarasanNilaiAsalDisplay').innerText = 'RM ' + formatDuit(nAsal);
+            document.getElementById('pelarasanInfoSidangAsal').innerText = pData.bilMesyuaratAsal || '-';
+            document.getElementById('pelarasanNilaiBaharuDisplay').innerText = 'RM ' + formatDuit(nBaharu);
+            document.getElementById('pelarasanInfoPemohon').innerText = 'Dimohon pada: ' + (pData.tarikhMohonPelarasan || '-');
+            document.getElementById('pelarasanBezaDisplay').innerText = (beza >= 0 ? '+RM ' : '-RM ') + formatDuit(Math.abs(beza));
+            document.getElementById('pelarasanBadgeKenaikan').innerText = (beza >= 0 ? '+' : '') + 'RM ' + formatDuit(beza) + ' (' + pct + '%)';
+            document.getElementById('pelarasanJustifikasiDisplay').innerText = pData.justifikasi || '-';
+
+            const failWrap = document.getElementById('pelarasanSenaraiFailDisplay');
+            if (failWrap) {
+              const qList = pData.failSebutHarga || [];
+              failWrap.innerHTML = qList.length
+                ? qList.map((f, i) => `<a href="${f.url}" target="_blank" class="btn btn-sm btn-outline-danger fw-bold"><i class="bi bi-file-earmark-pdf-fill me-1"></i>${escapeHtmlInduk(f.name || ('Sebut Harga ' + (i + 1)))}</a>`).join('')
+                : '<span class="text-muted">Tiada fail dilampirkan.</span>';
+            }
+          }
+
+          // Gunakan senarai item harga baharu daripada KCAN PPN sebagai draf di lajur JK SPeKS Induk
+          if (isPelarasanHargaInduk && Array.isArray(pData.itemsBaharu) && pData.itemsBaharu.length > 0) {
+            sourceItems = pData.itemsBaharu.map(it => ({
+              item: it.item || '',
+              qty: parseFloat(it.qty || 0),
+              harga: parseFloat(it.hargaBaharu || it.harga || 0),
+              sokong: (parseFloat(it.qty || 0) > 0),
+              sokongan: (parseFloat(it.qty || 0) > 0) ? 'SOKONG' : 'TIDAK_SOKONG',
+              sokongCurrent: (parseFloat(it.qty || 0) > 0),
+              sokonganCurrent: (parseFloat(it.qty || 0) > 0) ? 'SOKONG' : 'TIDAK_SOKONG',
+              ditolakAwal: !(parseFloat(it.qty || 0) > 0),
+              catatan: it.catatan || '',
+              createdBy: it.createdBy || ''
+            }));
+          }
+        } else if (cardPelarasan) {
+          cardPelarasan.style.display = 'none';
+        }
+
         window.globalSnapshots = snapshots;
         globalListItems = sourceItems;
         renderJadualKelulusan();
@@ -3720,6 +3888,19 @@
               </button>
               <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('KELULUSAN JK PRA SPEKS')">
                 <i class="bi bi-check-circle-fill me-1"></i> Kelulusan JK Pra SPeKS
+              </button>
+            `;
+          }
+          else if (isUrusetiaHQPenilai && isPelarasanHargaInduk) {
+            footerBtns.innerHTML = `
+              <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-3" onclick="handleTolak()" title="Membatalkan keseluruhan permohonan secara muktamad">
+                <i class="bi bi-slash-circle me-1"></i> Batal Permohonan Sepenuhnya
+              </button>
+              <button type="button" class="btn btn-warning btn-sm fw-bold px-3 text-dark" onclick="tolakPelarasanKekalAsal()" title="Tolak kenaikan harga dan kekalkan kelulusan asal">
+                <i class="bi bi-arrow-return-left me-1"></i> Tolak Pelarasan (Kekal Lulus Asal)
+              </button>
+              <button type="button" class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="saveData('MENUNGGU PENGESAHAN JK SPEKS INDUK')">
+                <i class="bi bi-check-circle-fill me-1"></i> Luluskan Harga Baharu
               </button>
             `;
           }
@@ -5095,11 +5276,11 @@ function escapeHtmlInduk(value) {
   let activeBatchStage = '';
   let activeBatchPayload = null;
   const batchStageConfig = {
-    induk: { 
+   induk: { 
       title: 'SENARAI PENILAIAN JK SPEKS INDUK', 
       role: ['Urusetia HQ'], 
-      status: ['Kelulusan JK Pra SPeKS'], 
-      description: 'Permohonan berstatus Kelulusan JK Pra SPeKS sahaja.' 
+      status: ['Kelulusan JK Pra SPeKS', 'Pelarasan Harga Perolehan'], 
+      description: 'Permohonan berstatus Kelulusan JK Pra SPeKS dan Pelarasan Harga Perolehan sahaja.' 
     },
     negeri: { 
       title: 'SENARAI PENILAIAN JK SPEKS NEGERI', 
@@ -6215,7 +6396,7 @@ function teruskanProsesBukaBatch(targetBatchKey, bilNumber, tahunMesyuarat, tari
     const isJKPra = roleUpper.includes('PRA') || roleUpper.includes('AKUA') || isUrusetiaPra;
     const isUrusetiaHQ = String(currentUser.role || '').toUpperCase().trim() === 'URUSETIA HQ' && !isUrusetiaPra;
     const isJKInduk = roleUpper.includes('INDUK');
-    const isPenilaianJKIndukBatch = isUrusetiaHQ && activeApp && normaliseStatus(activeApp['Status Semasa']) === 'KELULUSAN JK PRA SPEKS';
+    const isPenilaianJKIndukBatch = isUrusetiaHQ && activeApp && (normaliseStatus(activeApp['Status Semasa']) === 'KELULUSAN JK PRA SPEKS' || normaliseStatus(activeApp['Status Semasa']) === 'PELARASAN HARGA PEROLEHAN');
 
     // ── 1. PENETAPAN STATUS AUTOMATIK MENGIKUT PERANAN (JIKA TIADA STATUS KHAS) ──
     if (!status) {
@@ -10450,6 +10631,250 @@ let monthlyTrendChartInstance = null;
         .padamDokumenMesyuarat({
           role: currentUser.role,
           fileId: fileId
+        });
+    });
+  }
+<script>
+  // =========================================================================
+  // FUNGSI ANTARAMUKA: PELARASAN HARGA PEROLEHAN (KCAN PPN & URUS SETIA HQ)
+  // =========================================================================
+  let pelarasanItemsAsalCache = [];
+  let pelarasanNilaiAsalCache = 0;
+
+  function bukaModalPelarasanHarga(appId) {
+    if (!currentUser || currentUser.role !== 'KCAN PPN') {
+      return Swal.fire('Akses Ditolak', 'Hanya KCAN PPN dibenarkan memulakan pelarasan harga perolehan.', 'error');
+    }
+
+    Swal.fire({ title: 'Memuatkan Rekod Kelulusan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close();
+        const app = res && res.data ? res.data : res;
+        if (!app) return Swal.fire('Ralat', 'Gagal memuatkan data permohonan.', 'error');
+
+        const snapshots = app._snapshots || {};
+        const itemsInduk = (snapshots['Jawatan Kuasa SPeKS Induk'] && snapshots['Jawatan Kuasa SPeKS Induk'].length > 0)
+          ? snapshots['Jawatan Kuasa SPeKS Induk']
+          : parseItemsAsalPemohon(app);
+
+        pelarasanItemsAsalCache = JSON.parse(JSON.stringify(itemsInduk));
+        let totalAsal = 0;
+
+        const tbody = document.getElementById('tbodyModalPelarasanItems');
+        tbody.innerHTML = pelarasanItemsAsalCache.map((it, idx) => {
+          const isSokong = (it.sokongan === 'SOKONG' || it.sokong === true || it.sokong === 'true' || it.sokong === undefined);
+          const qty = isSokong ? (parseFloat(it.qty) || 0) : 0;
+          const harga = isSokong ? (parseFloat(it.harga) || 0) : 0;
+          const sub = qty * harga;
+          totalAsal += sub;
+
+          if (qty <= 0) {
+            return `
+              <tr class="table-secondary text-muted">
+                <td class="text-center">${idx + 1}</td>
+                <td>${escapeHtmlInduk(it.item || '-')} <span class="badge bg-danger ms-1">Tidak Diluluskan</span></td>
+                <td class="text-center">0</td>
+                <td class="text-end">0.00</td>
+                <td class="text-center">-</td>
+                <td class="text-end">0.00</td>
+              </tr>
+            `;
+          }
+
+          return `
+            <tr>
+              <td class="text-center fw-bold">${idx + 1}</td>
+              <td class="fw-semibold">${escapeHtmlInduk(it.item || '-')}</td>
+              <td class="text-center fw-bold">${qty}</td>
+              <td class="text-end text-primary fw-bold">${formatDuit(harga)}</td>
+              <td>
+                <input type="number" step="0.01" min="0" class="form-control form-control-sm text-end fw-bold text-danger input-pelarasan-harga"
+                  data-idx="${idx}" data-qty="${qty}" value="${harga.toFixed(2)}" oninput="kiraJumlahPelarasanModal()">
+              </td>
+              <td class="text-end fw-bold text-dark" id="subPelarasan_${idx}">RM ${formatDuit(sub)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        pelarasanNilaiAsalCache = totalAsal;
+        document.getElementById('pelarasanAppId').value = appId;
+        document.getElementById('pelarasanModalIdDisplay').innerText = appId;
+        document.getElementById('pelarasanModalNamaDisplay').innerText = app['Nama Pemohon'] || '-';
+        document.getElementById('pelarasanModalSilingAsal').innerText = 'RM ' + formatDuit(totalAsal);
+        document.getElementById('pelarasanFailSebutHarga').value = '';
+        document.getElementById('pelarasanJustifikasiInput').value = '';
+
+        kiraJumlahPelarasanModal();
+
+        const modalEl = document.getElementById('modalPelarasanHargaPerolehan');
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      })
+      .withFailureHandler(err => {
+        Swal.close();
+        Swal.fire('Ralat Pelayan', err.message, 'error');
+      })
+      .ambilDataPermohonan(appId);
+  }
+
+  function kiraJumlahPelarasanModal() {
+    let totalBaharu = 0;
+    document.querySelectorAll('.input-pelarasan-harga').forEach(inp => {
+      const idx = inp.dataset.idx;
+      const qty = parseFloat(inp.dataset.qty) || 0;
+      const harga = parseFloat(inp.value) || 0;
+      const sub = qty * harga;
+      totalBaharu += sub;
+      const subEl = document.getElementById('subPelarasan_' + idx);
+      if (subEl) subEl.innerText = 'RM ' + formatDuit(sub);
+    });
+    const totalEl = document.getElementById('pelarasanModalJumlahBaharu');
+    if (totalEl) totalEl.innerText = 'RM ' + formatDuit(totalBaharu);
+  }
+
+  async function hantarPelarasanHargaPerolehan() {
+    const appId = document.getElementById('pelarasanAppId').value;
+    const fileInput = document.getElementById('pelarasanFailSebutHarga');
+    const justifikasi = document.getElementById('pelarasanJustifikasiInput').value.trim();
+
+    if (!fileInput.files || fileInput.files.length < 2) {
+      return Swal.fire('Dokumen Tidak Mencukupi', 'Sila muat naik sekurang-kurangnya DUA (2) dokumen sebut harga perbandingan.', 'warning');
+    }
+
+    if (!justifikasi) {
+      return Swal.fire('Justifikasi Diperlukan', 'Sila masukkan sebab kenaikan harga perolehan.', 'warning');
+    }
+
+    let totalBaharu = 0;
+    const itemsBaharu = JSON.parse(JSON.stringify(pelarasanItemsAsalCache));
+
+    document.querySelectorAll('.input-pelarasan-harga').forEach(inp => {
+      const idx = parseInt(inp.dataset.idx, 10);
+      const qty = parseFloat(inp.dataset.qty) || 0;
+      const hargaBaharu = parseFloat(inp.value) || 0;
+      totalBaharu += (qty * hargaBaharu);
+
+      if (itemsBaharu[idx]) {
+        itemsBaharu[idx].hargaBaharu = hargaBaharu;
+        itemsBaharu[idx].harga = hargaBaharu;
+        itemsBaharu[idx].jumlah = qty * hargaBaharu;
+      }
+    });
+
+    if (totalBaharu <= pelarasanNilaiAsalCache) {
+      return Swal.fire('Tiada Kenaikan Harga', 'Jumlah baharu mestilah melebihi siling diluluskan asal (RM ' + formatDuit(pelarasanNilaiAsalCache) + '). Jika harga lebih rendah atau sama, teruskan perolehan seperti biasa.', 'info');
+    }
+
+    const confirm = await Swal.fire({
+      title: 'Hantar Pelarasan Harga ke HQ?',
+      html: `Siling Lulus Asal: <b>RM ${formatDuit(pelarasanNilaiAsalCache)}</b><br>` +
+            `Harga Baharu Dimohon: <b class="text-danger">RM ${formatDuit(totalBaharu)}</b><br><br>` +
+            `Permohonan akan dihantar terus kepada <b>Urus Setia HQ</b> untuk diangkat ke sidang <b>JK SPeKS Induk</b> yang seterusnya.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#153f6a',
+      confirmButtonText: 'Ya, Hantar Sekarang',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    Swal.fire({ title: 'Memuat Naik Sebut Harga & Menghantar...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+      const filesArr = [];
+      let totalSize = 0;
+      for (let f of fileInput.files) {
+        totalSize += f.size;
+        if (totalSize > 15 * 1024 * 1024) {
+          Swal.close();
+          return Swal.fire('Saiz Terlalu Besar', 'Jumlah keseluruhan fail melebihi 15MB.', 'warning');
+        }
+        const b64 = await toBase64(f);
+        filesArr.push({ name: f.name, data: b64 });
+      }
+
+      const payload = {
+        appId: appId,
+        role: currentUser.role,
+        namaPegawai: currentUser.nama,
+        emel: currentUser.emel,
+        negeri: currentUser.negeri || '',
+        nilaiAsal: pelarasanNilaiAsalCache,
+        nilaiBaharu: totalBaharu,
+        itemsAsal: pelarasanItemsAsalCache,
+        itemsBaharu: itemsBaharu,
+        justifikasi: justifikasi,
+        files: filesArr
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          Swal.close();
+          if (res && res.success) {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPelarasanHargaPerolehan')).hide();
+            Swal.fire('Berjaya Dihantar', res.message, 'success');
+            loadTable();
+          } else {
+            Swal.fire('Gagal', res ? res.message : 'Ralat berlaku.', 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.close();
+          Swal.fire('Ralat Pelayan', err.message, 'error');
+        })
+        .simpanPelarasanHargaPerolehan(payload);
+    } catch (e) {
+      Swal.close();
+      Swal.fire('Ralat Fail', e.message, 'error');
+    }
+  }
+
+  function tolakPelarasanKekalAsal() {
+    if (!activeApp || !currentUser) return;
+
+    Swal.fire({
+      title: 'Tolak Pelarasan & Kekal Lulus Asal?',
+      html: 'Kenaikan harga akan ditolak dan permohonan dipulangkan ke status <b>DILULUSKAN</b> menggunakan nilai siling asal.<br><br>Sila masukkan catatan keputusan mesyuarat:',
+      input: 'textarea',
+      inputPlaceholder: 'Catatan keputusan JK SPeKS Induk...',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e67e22',
+      confirmButtonText: 'Ya, Kekalkan Lulus Asal',
+      cancelButtonText: 'Batal',
+      inputValidator: v => !v && 'Catatan keputusan mesyuarat wajib diisi!'
+    }).then(resInput => {
+      if (!resInput.isConfirmed || !resInput.value) return;
+
+      Swal.fire({ title: 'Memproses Keputusan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      const targetAppId = activeApp['ID Permohonan'] || activeApp.id;
+      google.script.run
+        .withSuccessHandler(res => {
+          Swal.close();
+          if (res && res.success) {
+            if (activeBatchStage && activeBatchPayload) {
+              kembaliDariPenilaian();
+            } else {
+              showSection('table');
+              loadTable();
+            }
+            Swal.fire('Selesai', res.message, 'success');
+          } else {
+            Swal.fire('Gagal', res ? res.message : 'Ralat berlaku.', 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.close();
+          Swal.fire('Ralat Pelayan', err.message, 'error');
+        })
+        .tolakPelarasanHargaKekalAsal({
+          appId: targetAppId,
+          role: currentUser.role,
+          namaPegawai: currentUser.emel,
+          ulasan: resInput.value
         });
     });
   }
