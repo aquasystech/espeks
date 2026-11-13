@@ -94,7 +94,40 @@
 
     /* CARDS & STATUS BADGES */
     .stage-card { border-left: 5px solid #ddd; padding: 15px; margin-bottom: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .status-badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; white-space: nowrap; }
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      white-space: nowrap;
+      max-width: 155px;
+      overflow: hidden;
+      vertical-align: middle;
+      text-align: center;
+    }
+    .status-badge.status-crawl {
+      padding: 4px 6px;
+      text-align: left;
+      mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    }
+    .status-crawl-track {
+      display: inline-flex;
+      width: max-content;
+      animation: statusCrawlLoop 9s linear infinite;
+    }
+    .status-crawl-track span {
+      padding-right: 28px;
+    }
+    .status-badge.status-crawl:hover .status-crawl-track {
+      animation-play-state: paused;
+    }
+    @keyframes statusCrawlLoop {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
 
     /* DETAIL VIEW UI */
     .table-detail { font-size: 0.8rem; width: 100%; margin-bottom: 15px; }
@@ -2853,7 +2886,10 @@
     }
     headers.push({ key: 'tindakan', label: 'TINDAKAN' });
 
-    thead.innerHTML = headers.map(h => '<th onclick="sortTable(\'' + h.key + '\')" style="cursor:pointer">' + h.label + '</th>').join('');
+    thead.innerHTML = headers.map(h => {
+      const styleCol = h.key === 'status' ? 'cursor:pointer; width:165px; max-width:165px;' : 'cursor:pointer;';
+      return '<th onclick="sortTable(\'' + h.key + '\')" style="' + styleCol + '">' + h.label + '</th>';
+    }).join('');
     
     if (!data || data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="' + headers.length + '" class="text-center py-5 text-muted">Tiada permohonan ditemui.</td></tr>';
@@ -2986,6 +3022,23 @@
 
         let agingBadgeHtml = kiraAgingBadge(app.tarikhTerimaStage || app.tarikh, app.status);
 
+        const statusTextRaw = String(app.status || '-').trim();
+        const statusColorClass = st.includes('DILULUSKAN')
+          ? 'bg-success text-white'
+          : (st.includes('TIDAK') || st.includes('TOLAK'))
+            ? 'bg-danger text-white'
+            : 'bg-warning text-dark';
+        const isStatusPanjang = statusTextRaw.length > 18;
+        const durasiCrawl = Math.max(7, Math.round(statusTextRaw.length * 0.28));
+        const statusBadgeHtml = isStatusPanjang
+          ? '<span class="status-badge status-crawl ' + statusColorClass + '" title="' + escapeAttrInduk(statusTextRaw) + '">' +
+              '<span class="status-crawl-track" style="animation-duration:' + durasiCrawl + 's;">' +
+                '<span>' + escapeHtmlInduk(statusTextRaw) + '</span>' +
+                '<span aria-hidden="true">' + escapeHtmlInduk(statusTextRaw) + '</span>' +
+              '</span>' +
+            '</span>'
+          : '<span class="status-badge ' + statusColorClass + '">' + escapeHtmlInduk(statusTextRaw) + '</span>';
+
         return '<tr>' +
           '<td class="fw-bold text-primary">' + app.id + '</td>' +
           '<td>' + (app.tarikh || '-') + '</td>' +
@@ -2993,7 +3046,7 @@
           '<td>' + (app.nama || '-') + '</td>' +
           '<td>' + (app.kategori || '-') + '</td>' +
           
-          '<td><span class="status-badge ' + (st.includes('DILULUSKAN') ? 'bg-success text-white' : st.includes('TIDAK') || st.includes('TOLAK') ? 'bg-danger text-white' : 'bg-warning text-dark') + '">' + (app.status || '-') + '</span></td>' +
+          '<td style="width:165px; max-width:165px;">' + statusBadgeHtml + '</td>' +
           (paparkanKolumNegeri ? '<td><span class="fw-semibold">' + getNegeriPerusahaan(app) + '</span></td>' : '') +
           dropdownPicHQHtml +
 
