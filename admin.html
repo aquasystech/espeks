@@ -3027,7 +3027,8 @@
         let btnCetakHtml = (st === 'DILULUSKAN' || st === 'SELESAI SERAH BANTUAN') ? ' <button class="btn btn-sm btn-info text-white py-1 px-2 ms-1 fw-bold" style="font-size:0.75rem;" onclick="cetakSuratLulusDariDashboard(\'' + app.id + '\')">🖨️ Surat</button>' : '';
 
         // BUTANG AKUAN TERIMA BERPERINGKAT & PELARASAN HARGA PEROLEHAN
-        const isPegawaiSerahan = ['FA PPD', 'KDP PPD', 'FA PPN', 'KCAN PPN'].includes(role);
+        const roleUpper = String(role || '').trim().toUpperCase();
+        const isPegawaiSerahan = ['FA PPD', 'KDP PPD', 'FA PPN', 'KCAN PPN'].includes(roleUpper);
         let btnAkuanTerimaHtml = '';
         let btnPelarasanHargaHtml = '';
 
@@ -3043,7 +3044,7 @@
 
         if (st === 'DILULUSKAN' && isPegawaiSerahan) {
           btnAkuanTerimaHtml = ' <button type="button" class="btn btn-sm btn-success py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaHalamanAkuanTerima(\'' + app.id + '\')"><i class="bi bi-box-seam-fill me-1"></i> Akuan Terima</button>';
-          if (role === 'KCAN PPN') {
+          if (roleUpper === 'KCAN PPN') {
             btnPelarasanHargaHtml = ' <button type="button" class="btn btn-sm btn-warning text-dark py-1 px-2 ms-1 fw-bold shadow-sm" style="font-size:0.75rem;" onclick="bukaModalPelarasanHarga(\'' + app.id + '\')"><i class="bi bi-currency-exchange me-1"></i> Pelarasan Harga</button>';
           }
         } else if (st === 'SERAHAN SEBAHAGIAN' && isPegawaiSerahan) {
@@ -3101,7 +3102,7 @@
                 ? '<button type="button" class="btn btn-sm btn-success py-1 px-2" onclick="bukaHalamanBatch(\'pra\')">Penilaian JK Pra SPeKS</button>'
                 : (actionType === 'confirm-induk'
                   ? '<button type="button" class="btn btn-sm ' + btnClass + ' py-1 px-3" onclick="openEval(\'' + app.id + '\', \'confirm-induk\')">' + btnLabel + '</button>'
-                  : '<button type="button" class="btn btn-sm ' + btnClass + ' py-1 px-3" onclick="openEval(\'' + app.id + '\', \'' + actionType + '\')">' + btnLabel + '</button>'))
+                  : '<button type="button" class="btn btn-sm ' + btnClass + ' py-1 px-3" onclick="openEval(\'' + app.id + '\', \'' + actionType + '\')">' + btnLabel + '</button>')) +
           btnCetakHtml + btnAkuanTerimaHtml + btnPelarasanHargaHtml + btnMinitHtml + btnViewMinitHtml + '</div></td>' +
         '</tr>';
     }).join('');
